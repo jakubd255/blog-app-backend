@@ -49,6 +49,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/api/auth/log-in").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/posts/{id}", "/api/posts").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/users/{id}", "/api/users").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/files/download/{name}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

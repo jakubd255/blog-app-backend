@@ -8,6 +8,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
+import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
+import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.JwtResponse;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserResponse;
 import pl.jakubdudek.blogappbackend.model.entity.User;
@@ -44,5 +46,25 @@ public class AuthenticationService {
 
     public UserResponse authenticate() {
         return dtoMapper.mapUserToDto(authenticationManager.getAuthenticatedUser());
+    }
+
+    public JwtResponse updateEmail(EmailUpdateRequest request) {
+        User user = authenticationManager.getAuthenticatedUser();
+
+        user.setEmail(request.getEmail());
+        userRepository.save(user);
+
+        return new JwtResponse(jwtGenerator.generateToken(user.getUsername()));
+    }
+
+    public void updatePassword(PasswordUpdateRequest request) {
+        User user = authenticationManager.getAuthenticatedUser();
+
+        if(!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid password");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }

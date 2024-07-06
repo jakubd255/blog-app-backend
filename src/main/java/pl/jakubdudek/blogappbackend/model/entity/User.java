@@ -33,6 +33,8 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    private String profileImage;
+
     @Enumerated(EnumType.STRING)
     private UserRole role;
 

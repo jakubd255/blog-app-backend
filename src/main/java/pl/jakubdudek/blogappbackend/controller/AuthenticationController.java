@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
+import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
+import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.JwtResponse;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserResponse;
 import pl.jakubdudek.blogappbackend.service.AuthenticationService;
@@ -33,5 +35,18 @@ public class AuthenticationController {
     @GetMapping
     public ResponseEntity<UserResponse> authenticate() {
         return ResponseEntity.ok(authenticationService.authenticate());
+    }
+
+    @PutMapping("/email")
+    public ResponseEntity<JwtResponse> updateEmail(@RequestBody EmailUpdateRequest request, HttpServletResponse response) {
+        JwtResponse token = authenticationService.updateEmail(request);
+        cookieManager.addCookie(response, token.token());
+        return ResponseEntity.ok(token);
+    }
+
+    @PutMapping("/password")
+    public ResponseEntity<String> updatePassword(@RequestBody PasswordUpdateRequest request) {
+        authenticationService.updatePassword(request);
+        return ResponseEntity.ok("Successfully updated password");
     }
 }

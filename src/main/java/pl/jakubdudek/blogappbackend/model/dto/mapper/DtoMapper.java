@@ -13,6 +13,7 @@ public class DtoMapper {
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
+                user.getProfileImage(),
                 user.getRole()
         );
     }

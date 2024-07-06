@@ -27,6 +27,46 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 - Get logged-in user data
 - Requires authentication
 
+### PUT: /api/auth/email
+```json
+{
+  "email": "new.email@gmail.com"
+}
+```
+- Requires authentication
+
+### PUT: /api/auth/password
+```json
+{
+  "currentPassword": "12345678",
+  "newPassword": "new-password"
+}
+```
+- Requires authentication
+
+### GET: /api/users/:id
+- Get chosen user by id
+
+### GET: /api/users
+- Get all users
+
+### PUT: /api/users/:id
+```json
+{
+  "name": "New Username"
+}
+```
+- Requires authentication
+- User can edit only own
+- Admin can edit any
+
+### PUT: /api/users/:id/profile-image
+- multipart/form-data, *image* key
+- Edit chosen user's profile image
+- Requires authentication
+- User can edit only own
+- Admin can edit any
+
 ### POST: /api/posts
 ```json
 {
@@ -56,3 +96,6 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 - Delete chosen post by id
 - Requires authentication
 - Only author or admin can delete
+
+### GET: /api/files/download/:name
+- Download chosen file by its name

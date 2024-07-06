@@ -36,4 +36,5 @@ build/
 
 .env
 /src/main/resources/db
+/uploads
 .DS_Store
