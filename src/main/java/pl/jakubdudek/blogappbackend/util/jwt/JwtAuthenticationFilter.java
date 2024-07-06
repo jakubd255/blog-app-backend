@@ -46,13 +46,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             email = jwtGenerator.extractUsername(token);
         }
-        catch (ExpiredJwtException e) {
+        catch(ExpiredJwtException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("JWT expired");
             cookieManager.removeCookies(response);
             return;
         }
-        catch (MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+        catch(MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write("Invalid JWT");
             cookieManager.removeCookies(response);

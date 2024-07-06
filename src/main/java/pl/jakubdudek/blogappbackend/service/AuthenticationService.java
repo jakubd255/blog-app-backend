@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.JwtResponse;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserResponse;
@@ -21,6 +22,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtGenerator jwtGenerator;
     private final JwtAuthenticationManager authenticationManager;
+    private final DtoMapper dtoMapper;
 
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username).orElseThrow(
@@ -37,12 +39,10 @@ public class AuthenticationService {
             throw new BadCredentialsException("Invalid password");
         }
 
-        String token = jwtGenerator.generateToken(user.getUsername());
-        return new JwtResponse(token);
+        return new JwtResponse(jwtGenerator.generateToken(user.getUsername()));
     }
 
     public UserResponse authenticate() {
-        User user = authenticationManager.getAuthenticatedUser();
-        return new UserResponse(user.getId(), user.getName(), user.getEmail(), user.getRole());
+        return dtoMapper.mapUserToDto(authenticationManager.getAuthenticatedUser());
     }
 }

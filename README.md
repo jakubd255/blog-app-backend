@@ -24,5 +24,35 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 - Requires authentication
 
 ### GET: /api/auth
-- Retrieve user data
+- Get logged-in user data
 - Requires authentication
+
+### POST: /api/posts
+```json
+{
+  "title": "Example title",
+  "body": "Example long text"
+}
+```
+- Requires authentication
+
+### GET: /api/posts
+- Get all posts
+
+### GET: /api/posts/:id
+- Get chosen post by id
+
+### PUT: /api/posts/:id
+```json
+{
+  "title": "New title",
+  "body": "New text"
+}
+```
+- Requires authentication
+- Only author or admin can update
+
+### DELETE: /api/posts/:id
+- Delete chosen post by id
+- Requires authentication
+- Only author or admin can delete
