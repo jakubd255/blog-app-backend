@@ -67,6 +67,11 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 - User can edit only own
 - Admin can edit any
 
+### DELETE: /api/users/:id/delete-user
+- Requires authentication
+- User can delete only his own account
+- Admin can delete any account
+
 ### POST: /api/posts
 ```json
 {

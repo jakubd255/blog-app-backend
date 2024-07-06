@@ -72,13 +72,17 @@ public class UserService {
         }
     }
 
-    public void deleteUser(Integer id) {
+    public void deleteUser(Integer id) throws IOException {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("User not found")
         );
 
         if(isUserPermittedToUser(user)) {
             userRepository.deleteById(id);
+
+            if(!(user.getProfileImage() == null || user.getProfileImage().isEmpty())) {
+                fileService.deleteFile(user.getProfileImage());
+            }
         }
         else {
             throw new ForbiddenException("You don't have permission to delete this user");
