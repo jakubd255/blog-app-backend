@@ -1,4 +1,4 @@
 package pl.jakubdudek.blogappbackend.model.dto.response;
 
-public record JwtResponse(String token) {
+public record Jwt(String token) {
 }

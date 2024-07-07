@@ -10,8 +10,8 @@ import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.JwtResponse;
-import pl.jakubdudek.blogappbackend.model.dto.response.UserResponse;
+import pl.jakubdudek.blogappbackend.model.dto.response.Jwt;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
@@ -32,7 +32,7 @@ public class AuthenticationService {
         );
     }
 
-    public JwtResponse logIn(LoginRequest request) {
+    public Jwt logIn(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new BadCredentialsException("Invalid email")
         );
@@ -41,20 +41,20 @@ public class AuthenticationService {
             throw new BadCredentialsException("Invalid password");
         }
 
-        return new JwtResponse(jwtGenerator.generateToken(user.getUsername()));
+        return new Jwt(jwtGenerator.generateToken(user.getUsername()));
     }
 
-    public UserResponse authenticate() {
+    public UserDto authenticate() {
         return dtoMapper.mapUserToDto(authenticationManager.getAuthenticatedUser());
     }
 
-    public JwtResponse updateEmail(EmailUpdateRequest request) {
+    public Jwt updateEmail(EmailUpdateRequest request) {
         User user = authenticationManager.getAuthenticatedUser();
 
         user.setEmail(request.getEmail());
         userRepository.save(user);
 
-        return new JwtResponse(jwtGenerator.generateToken(user.getUsername()));
+        return new Jwt(jwtGenerator.generateToken(user.getUsername()));
     }
 
     public void updatePassword(PasswordUpdateRequest request) {

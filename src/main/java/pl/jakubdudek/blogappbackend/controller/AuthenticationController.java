@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.JwtResponse;
-import pl.jakubdudek.blogappbackend.model.dto.response.UserResponse;
+import pl.jakubdudek.blogappbackend.model.dto.response.Jwt;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.service.AuthenticationService;
 import pl.jakubdudek.blogappbackend.util.cookie.CookieManager;
 
@@ -20,8 +20,8 @@ public class AuthenticationController {
     private final CookieManager cookieManager;
 
     @PostMapping("/log-in")
-    public ResponseEntity<JwtResponse> logIn(@RequestBody LoginRequest request, HttpServletResponse response) {
-        JwtResponse token = authenticationService.logIn(request);
+    public ResponseEntity<Jwt> logIn(@RequestBody LoginRequest request, HttpServletResponse response) {
+        Jwt token = authenticationService.logIn(request);
         cookieManager.addCookie(response, token.token());
         return ResponseEntity.ok(token);
     }
@@ -33,13 +33,13 @@ public class AuthenticationController {
     }
 
     @GetMapping
-    public ResponseEntity<UserResponse> authenticate() {
+    public ResponseEntity<UserDto> authenticate() {
         return ResponseEntity.ok(authenticationService.authenticate());
     }
 
     @PutMapping("/email")
-    public ResponseEntity<JwtResponse> updateEmail(@RequestBody EmailUpdateRequest request, HttpServletResponse response) {
-        JwtResponse token = authenticationService.updateEmail(request);
+    public ResponseEntity<Jwt> updateEmail(@RequestBody EmailUpdateRequest request, HttpServletResponse response) {
+        Jwt token = authenticationService.updateEmail(request);
         cookieManager.addCookie(response, token.token());
         return ResponseEntity.ok(token);
     }

@@ -8,7 +8,6 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
-import pl.jakubdudek.blogappbackend.model.entity.User;
 
 import java.security.Key;
 import java.util.Date;
@@ -23,12 +22,12 @@ public class JwtGenerator {
     private int jwtExpirationTime;
 
     public String generateToken(String username) {
-        Date currectDate = new Date();
-        Date expirationDate = new Date(currectDate.getTime()+jwtExpirationTime);
+        Date currentDate = new Date();
+        Date expirationDate = new Date(currentDate.getTime()+jwtExpirationTime);
 
         JwtBuilder jwtBuilder = Jwts.builder();
         jwtBuilder
-                .setIssuedAt(currectDate)
+                .setIssuedAt(currentDate)
                 .setExpiration(expirationDate)
                 .setSubject(username)
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256);

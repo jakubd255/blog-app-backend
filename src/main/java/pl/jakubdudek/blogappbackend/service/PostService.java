@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
-import pl.jakubdudek.blogappbackend.model.dto.response.PostResponse;
-import pl.jakubdudek.blogappbackend.model.entity.Post;
+import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.role.UserRole;
 import pl.jakubdudek.blogappbackend.repository.PostRepository;
@@ -21,24 +21,24 @@ public class PostService {
     private final JwtAuthenticationManager authenticationManager;
     private final DtoMapper dtoMapper;
 
-    public PostResponse addPost(Post post) {
+    public PostDto addPost(pl.jakubdudek.blogappbackend.model.entity.Post post) {
         post.setUser(authenticationManager.getAuthenticatedUser());
         return dtoMapper.mapPostToDto(postRepository.save(post));
     }
 
-    public PostResponse getPost(Integer id) {
-        Post post = postRepository.findById(id).orElseThrow(
+    public PostDto getPost(Integer id) {
+        pl.jakubdudek.blogappbackend.model.entity.Post post = postRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Post not found")
         );
         return dtoMapper.mapPostToDto(post);
     }
 
-    public List<PostResponse> getAllPosts() {
-        return postRepository.findAll().stream().map(dtoMapper::mapPostToDto).toList();
+    public List<PostSummary> getAllPosts() {
+        return postRepository.findAllWithoutBody();
     }
 
-    public PostResponse editPost(Integer id, Post newPost) {
-        Post post = postRepository.findById(id).orElseThrow(
+    public PostDto editPost(Integer id, pl.jakubdudek.blogappbackend.model.entity.Post newPost) {
+        pl.jakubdudek.blogappbackend.model.entity.Post post = postRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Post not found")
         );
 
@@ -58,7 +58,7 @@ public class PostService {
     }
 
     public void deletePost(Integer id) {
-        Post post = postRepository.findById(id).orElseThrow(
+        pl.jakubdudek.blogappbackend.model.entity.Post post = postRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Post not found")
         );
 
@@ -70,7 +70,7 @@ public class PostService {
         }
     }
 
-    private boolean isUserPermittedToPost(Post post) {
+    private boolean isUserPermittedToPost(pl.jakubdudek.blogappbackend.model.entity.Post post) {
         User user = authenticationManager.getAuthenticatedUser();
         return user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(post.getUser().getId());
     }

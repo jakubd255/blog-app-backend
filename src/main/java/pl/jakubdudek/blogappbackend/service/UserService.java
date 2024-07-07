@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
-import pl.jakubdudek.blogappbackend.model.dto.response.UserResponse;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.role.UserRole;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
@@ -23,7 +23,7 @@ public class UserService {
     private final DtoMapper dtoMapper;
     private final FileService fileService;
 
-    public UserResponse getUser(Integer id) {
+    public UserDto getUser(Integer id) {
         return dtoMapper.mapUserToDto(
                 userRepository.findById(id).orElseThrow(
                         () -> new EntityNotFoundException("User not found")
@@ -31,11 +31,11 @@ public class UserService {
         );
     }
 
-    public List<UserResponse> getAllUsers() {
+    public List<UserDto> getAllUsers() {
         return userRepository.findAll().stream().map(dtoMapper::mapUserToDto).toList();
     }
 
-    public UserResponse editUser(Integer id, User newUser) {
+    public UserDto editUser(Integer id, User newUser) {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("User not found")
         );
