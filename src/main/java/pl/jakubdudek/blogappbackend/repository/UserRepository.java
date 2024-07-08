@@ -2,7 +2,7 @@ package pl.jakubdudek.blogappbackend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.role.UserRole;
+import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 
 import java.util.Optional;
 

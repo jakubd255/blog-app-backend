@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class JwtExtractor {
+
     private String extractAccessTokenFromHeader(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");
 

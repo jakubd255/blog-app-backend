@@ -1,6 +1,6 @@
 package pl.jakubdudek.blogappbackend.model.dto.response;
 
-import pl.jakubdudek.blogappbackend.model.role.UserRole;
+import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 
 public record UserDto(
         Integer id,

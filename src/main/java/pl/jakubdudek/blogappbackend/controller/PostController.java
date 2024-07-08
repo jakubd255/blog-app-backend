@@ -2,9 +2,12 @@ package pl.jakubdudek.blogappbackend.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;
+import pl.jakubdudek.blogappbackend.model.dto.response.PostDetailedSummary;
+import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.service.PostService;
 
 import java.util.List;
@@ -16,8 +19,19 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<PostDto> addPost(@RequestBody pl.jakubdudek.blogappbackend.model.entity.Post post) {
+    public ResponseEntity<PostDto> addPost(@RequestBody Post post) {
         return ResponseEntity.ok(postService.addPost(post));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostSummary>> getAllPublishedPosts() {
+        return ResponseEntity.ok(postService.getAllPublishedPosts());
+    }
+
+    @GetMapping("/all")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<List<PostDetailedSummary>> getAllPosts() {
+        return ResponseEntity.ok(postService.getAllPosts());
     }
 
     @GetMapping("/{id}")
@@ -25,13 +39,8 @@ public class PostController {
         return ResponseEntity.ok(postService.getPost(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PostSummary>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
-    }
-
     @PutMapping("/{id}")
-    public ResponseEntity<PostDto> editPost(@PathVariable Integer id, @RequestBody pl.jakubdudek.blogappbackend.model.entity.Post post) {
+    public ResponseEntity<PostDto> editPost(@PathVariable Integer id, @RequestBody Post post) {
         return ResponseEntity.ok(postService.editPost(id, post));
     }
 

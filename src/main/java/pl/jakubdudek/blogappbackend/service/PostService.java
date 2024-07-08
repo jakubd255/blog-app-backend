@@ -7,8 +7,11 @@ import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;
+import pl.jakubdudek.blogappbackend.model.dto.response.PostDetailedSummary;
+import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.role.UserRole;
+import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
+import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.repository.PostRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
@@ -21,24 +24,33 @@ public class PostService {
     private final JwtAuthenticationManager authenticationManager;
     private final DtoMapper dtoMapper;
 
-    public PostDto addPost(pl.jakubdudek.blogappbackend.model.entity.Post post) {
+    public PostDto addPost(Post post) {
         post.setUser(authenticationManager.getAuthenticatedUser());
         return dtoMapper.mapPostToDto(postRepository.save(post));
     }
 
     public PostDto getPost(Integer id) {
-        pl.jakubdudek.blogappbackend.model.entity.Post post = postRepository.findById(id).orElseThrow(
+        Post post = postRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Post not found")
         );
+
+        if(post.getStatus().equals(PostStatus.DRAFT) && !isUserPermittedToPost(post)) {
+            throw new ForbiddenException("Only admin or author has access to drafts");
+        }
+
         return dtoMapper.mapPostToDto(post);
     }
 
-    public List<PostSummary> getAllPosts() {
-        return postRepository.findAllWithoutBody();
+    public List<PostSummary> getAllPublishedPosts() {
+        return postRepository.findAllPublishedPostSummaries();
     }
 
-    public PostDto editPost(Integer id, pl.jakubdudek.blogappbackend.model.entity.Post newPost) {
-        pl.jakubdudek.blogappbackend.model.entity.Post post = postRepository.findById(id).orElseThrow(
+    public List<PostDetailedSummary> getAllPosts() {
+        return postRepository.findAllPostSummaries();
+    }
+
+    public PostDto editPost(Integer id, Post newPost) {
+        Post post = postRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Post not found")
         );
 
@@ -49,6 +61,9 @@ public class PostService {
             if(newPost.getBody() != null && !newPost.getBody().isEmpty()) {
                 post.setBody(newPost.getBody());
             }
+            if(newPost.getStatus() != null) {
+                post.setStatus(newPost.getStatus());
+            }
 
             return dtoMapper.mapPostToDto(postRepository.save(post));
         }
@@ -58,7 +73,7 @@ public class PostService {
     }
 
     public void deletePost(Integer id) {
-        pl.jakubdudek.blogappbackend.model.entity.Post post = postRepository.findById(id).orElseThrow(
+        Post post = postRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Post not found")
         );
 
@@ -70,7 +85,11 @@ public class PostService {
         }
     }
 
-    private boolean isUserPermittedToPost(pl.jakubdudek.blogappbackend.model.entity.Post post) {
+    private boolean isUserPermittedToPost(Post post) {
+        if(!authenticationManager.isUserAuthenticated()) {
+            return false;
+        }
+
         User user = authenticationManager.getAuthenticatedUser();
         return user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(post.getUser().getId());
     }

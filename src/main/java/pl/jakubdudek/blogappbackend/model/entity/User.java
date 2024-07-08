@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import pl.jakubdudek.blogappbackend.model.role.UserRole;
+import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +35,7 @@ public class User implements UserDetails {
 
     private String profileImage;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole role;
 

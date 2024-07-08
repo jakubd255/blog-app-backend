@@ -7,6 +7,7 @@ import pl.jakubdudek.blogappbackend.model.entity.User;
 
 @Component
 public class JwtAuthenticationManager {
+
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return (User)authentication.getPrincipal();

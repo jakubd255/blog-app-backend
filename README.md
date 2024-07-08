@@ -76,13 +76,19 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 ```json
 {
   "title": "Example title",
-  "body": "Example long text"
+  "body": "Example long text",
+  "status": "DRAFT or PUBLISHED"
 }
 ```
 - Requires authentication
 
 ### GET: /api/posts
+- Get all published posts
+
+### GET: /api/posts/all
 - Get all posts
+- Requires authentication
+- Requires admin role
 
 ### GET: /api/posts/:id
 - Get chosen post by id
@@ -91,7 +97,8 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 ```json
 {
   "title": "New title",
-  "body": "New text"
+  "body": "New text",
+  "status": "DRAFT or PUBLISHED"
 }
 ```
 - Requires authentication

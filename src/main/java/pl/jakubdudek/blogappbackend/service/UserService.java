@@ -8,7 +8,7 @@ import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.role.UserRole;
+import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
@@ -90,6 +90,10 @@ public class UserService {
     }
 
     private boolean isUserPermittedToUser(User user) {
+        if(!authenticationManager.isUserAuthenticated()) {
+            return false;
+        }
+
         User authUser = authenticationManager.getAuthenticatedUser();
         return user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authUser.getId());
     }

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
 
 import java.util.Date;
 
@@ -26,6 +27,10 @@ public class Post {
     @Column(nullable = false)
     @Lob
     private String body;
+
+    //@Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private PostStatus status;
 
     @CreationTimestamp
     @Column(updatable = false)
