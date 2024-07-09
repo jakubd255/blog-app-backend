@@ -95,6 +95,6 @@ public class UserService {
         }
 
         User authUser = authenticationManager.getAuthenticatedUser();
-        return user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authUser.getId());
+        return authUser.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authUser.getId());
     }
 }

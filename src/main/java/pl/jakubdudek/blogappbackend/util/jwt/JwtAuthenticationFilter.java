@@ -9,8 +9,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.UnknownContentTypeException;
 import org.springframework.web.filter.OncePerRequestFilter;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
@@ -47,31 +49,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             email = jwtGenerator.extractUsername(token);
         }
         catch(ExpiredJwtException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("JWT expired");
-            cookieManager.removeCookies(response);
+            returnResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "JWT expired");
             return;
         }
-        catch(MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid JWT");
-            cookieManager.removeCookies(response);
+        catch(MalformedJwtException | UnsupportedJwtException | IllegalArgumentException | UnknownContentTypeException e) {
+            returnResponse(response, HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT");
             return;
         }
 
         if(!email.isEmpty() && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = authenticationService.userDetailsService().loadUserByUsername(email);
+            try {
+                UserDetails userDetails = authenticationService.userDetailsService().loadUserByUsername(email);
 
-            if(jwtGenerator.isTokenValid(token, userDetails.getUsername())) {
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                context.setAuthentication(authToken);
-                SecurityContextHolder.setContext(context);
+                if(jwtGenerator.isTokenValid(token, userDetails.getUsername())) {
+                    SecurityContext context = SecurityContextHolder.createEmptyContext();
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    context.setAuthentication(authToken);
+                    SecurityContextHolder.setContext(context);
+                }
+            }
+            catch(UsernameNotFoundException e) {
+                returnResponse(response, HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+                return;
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void returnResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.getWriter().write(message);
+        cookieManager.removeCookies(response);
     }
 }

@@ -1,12 +1,13 @@
 package pl.jakubdudek.blogappbackend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;
-import pl.jakubdudek.blogappbackend.model.dto.response.PostDetailedSummary;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.service.PostService;
 
@@ -19,8 +20,8 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
-    public ResponseEntity<PostDto> addPost(@RequestBody Post post) {
-        return ResponseEntity.ok(postService.addPost(post));
+    public ResponseEntity<PostDto> addPost(@RequestBody PostRequest post) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(postService.addPost(post));
     }
 
     @GetMapping
@@ -29,8 +30,8 @@ public class PostController {
     }
 
     @GetMapping("/all")
-    @Secured("ROLE_ADMIN")
-    public ResponseEntity<List<PostDetailedSummary>> getAllPosts() {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PostSummary>> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 

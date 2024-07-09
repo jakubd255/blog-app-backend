@@ -5,9 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
+import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;
-import pl.jakubdudek.blogappbackend.model.dto.response.PostDetailedSummary;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
@@ -24,8 +24,14 @@ public class PostService {
     private final JwtAuthenticationManager authenticationManager;
     private final DtoMapper dtoMapper;
 
-    public PostDto addPost(Post post) {
-        post.setUser(authenticationManager.getAuthenticatedUser());
+    public PostDto addPost(PostRequest request) {
+        System.out.println(authenticationManager.getAuthenticatedUser());
+        Post post = Post.builder()
+                .title(request.getTitle())
+                .body(request.getBody())
+                .status(request.getStatus())
+                .user(authenticationManager.getAuthenticatedUser())
+                .build();
         return dtoMapper.mapPostToDto(postRepository.save(post));
     }
 
@@ -45,7 +51,7 @@ public class PostService {
         return postRepository.findAllPublishedPostSummaries();
     }
 
-    public List<PostDetailedSummary> getAllPosts() {
+    public List<PostSummary> getAllPosts() {
         return postRepository.findAllPostSummaries();
     }
 
