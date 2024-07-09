@@ -9,7 +9,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
@@ -26,7 +25,6 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuthenticationIntegrationTests {
     @LocalServerPort
     private int port;
@@ -56,8 +54,8 @@ public class AuthenticationIntegrationTests {
         headers.set("Authorization", authToken);
 
         ResponseEntity<UserDto> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), UserDto.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
 
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assert response.getBody() != null;
         assertEquals(user.getId(), response.getBody().id());
     }
@@ -105,10 +103,10 @@ public class AuthenticationIntegrationTests {
         HttpEntity<PasswordUpdateRequest> request = new HttpEntity<>(new PasswordUpdateRequest(oldPassword, newPassword), headers);
 
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
+        User updatedUser = userRepository.findByEmail(user.getEmail()).orElse(null);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Successfully updated password", response.getBody());
-
-        User updatedUser = userRepository.findByEmail(user.getEmail()).orElse(null);
         assertNotNull(updatedUser);
         assertTrue(passwordEncoder.matches(newPassword, updatedUser.getPassword()));
     }
@@ -132,9 +130,9 @@ public class AuthenticationIntegrationTests {
         HttpEntity<EmailUpdateRequest> request = new HttpEntity<>(new EmailUpdateRequest(newEmail), headers);
 
         ResponseEntity<Jwt> response = restTemplate.exchange(url, HttpMethod.PUT, request, Jwt.class);
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-
         User updatedUser = userRepository.findByEmail(newEmail).orElse(null);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(updatedUser);
         assertEquals(newEmail, updatedUser.getEmail());
     }

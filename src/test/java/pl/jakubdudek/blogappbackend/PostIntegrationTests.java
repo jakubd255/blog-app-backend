@@ -10,7 +10,6 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
@@ -21,13 +20,14 @@ import pl.jakubdudek.blogappbackend.service.PostService;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class PostsIntegrationTests {
+public class PostIntegrationTests {
     @LocalServerPort
     private int port;
 
@@ -59,8 +59,8 @@ public class PostsIntegrationTests {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<PostRequest> request = new HttpEntity<>(new PostRequest("New post", "Post text", PostStatus.PUBLISHED), headers);
-
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
@@ -69,17 +69,17 @@ public class PostsIntegrationTests {
         User admin = userRepository.findById(1).orElse(null);
         assert admin != null;
 
-        postRepository.save(
-                Post.builder().title("post 1").body("test 1").status(PostStatus.PUBLISHED).user(admin).build()
-        );
-        postRepository.save(
-                Post.builder().title("post 2").body("test 2").status(PostStatus.DRAFT).user(admin).build()
-        );
+        postRepository.save(Post.builder().title("post 1").body("test 1").status(PostStatus.PUBLISHED).user(admin).build());
+        postRepository.save(Post.builder().title("post 2").body("test 2").status(PostStatus.DRAFT).user(admin).build());
 
-        List<PostSummary> posts = postService.getAllPublishedPosts();
+        String url = "http://localhost:"+port+"/api/posts";
 
-        for(PostSummary post : posts) {
-            assertEquals(PostStatus.PUBLISHED, post.getStatus());
+        ResponseEntity<List> response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, List.class);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        List<Map<String, Object>> posts = response.getBody();
+        for(Map<String, Object> post : posts) {
+            assertEquals("PUBLISHED", post.get("status"));
         }
     }
 
@@ -169,6 +169,7 @@ public class PostsIntegrationTests {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Successfully deleted post: "+post.getId(), response.getBody());
     }
@@ -194,6 +195,7 @@ public class PostsIntegrationTests {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Successfully deleted post: "+post.getId(), response.getBody());
     }
@@ -219,6 +221,7 @@ public class PostsIntegrationTests {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
+
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertEquals("You don't have permission to delete this post", response.getBody());
     }

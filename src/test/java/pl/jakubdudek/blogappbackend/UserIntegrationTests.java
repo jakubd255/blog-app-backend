@@ -19,7 +19,6 @@ import pl.jakubdudek.blogappbackend.service.UserService;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
 
 import java.util.List;
-import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -50,7 +49,8 @@ public class UserIntegrationTests {
         ResponseEntity<List<UserDto>> response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<>(){});
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotEquals(0, Objects.requireNonNull(response.getBody()).size());
+        assert response.getBody() != null;
+        assertNotEquals(0, response.getBody().size());
     }
 
     @Test

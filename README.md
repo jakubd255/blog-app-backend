@@ -111,3 +111,7 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 
 ### GET: /api/files/download/:name
 - Download chosen file by its name
+
+
+## Integration tests
+![](./screenshots/integration-tests.png)  
