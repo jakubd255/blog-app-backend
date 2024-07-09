@@ -4,7 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
-import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
+import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;

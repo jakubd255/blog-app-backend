@@ -1,4 +1,4 @@
-package pl.jakubdudek.blogappbackend.model.dto.mapper;
+package pl.jakubdudek.blogappbackend.util.mapper;
 
 import org.springframework.stereotype.Component;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;

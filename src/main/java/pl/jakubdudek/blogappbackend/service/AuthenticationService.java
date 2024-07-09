@@ -6,7 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import pl.jakubdudek.blogappbackend.model.dto.mapper.DtoMapper;
+import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
