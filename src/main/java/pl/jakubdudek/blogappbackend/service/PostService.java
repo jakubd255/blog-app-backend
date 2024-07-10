@@ -49,11 +49,19 @@ public class PostService {
     }
 
     public List<PostSummary> getAllPublishedPosts() {
-        return postRepository.findAllPublishedPostSummaries();
+        return postRepository.findPublishedPostSummaries();
     }
 
     public List<PostSummary> getAllPosts() {
-        return postRepository.findAllPostSummaries();
+        return postRepository.findPostSummaries();
+    }
+
+    public List<PostSummary> getAllPublishedPostsByUserId(Integer id) {
+        return postRepository.findPublishedPostSummariesByUserId(id);
+    }
+
+    public List<PostSummary> getAllPostsByUserId(Integer id) {
+        return postRepository.findPostSummariesByUserId(id);
     }
 
     public PostDto editPost(Integer id, Post newPost) {

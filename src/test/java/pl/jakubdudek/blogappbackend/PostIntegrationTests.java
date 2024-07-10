@@ -69,6 +69,25 @@ public class PostIntegrationTests {
     }
 
     @Test
+    public void addPostForbiddenTest() {
+        User user = createUser("post.user@gmail.com", UserRole.ROLE_USER);
+
+        HttpEntity<PostRequest> request = new HttpEntity<>(
+                new PostRequest("New post", "Post text", PostStatus.PUBLISHED),
+                createAuthHeaders(user.getEmail())
+        );
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl(""),
+                HttpMethod.POST,
+                request,
+                String.class
+        );
+
+        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
+    }
+
+    @Test
     public void getPostsTest() {
         User admin = getAdmin();
 
@@ -110,7 +129,7 @@ public class PostIntegrationTests {
 
     @Test
     public void getPostsForbiddenTest() {
-        User user = createUser("get.posts.forbidden.@gmail.com");
+        User user = createUser("get.posts.forbidden.@gmail.com", UserRole.ROLE_USER);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 getUrl("/all"),
@@ -123,7 +142,7 @@ public class PostIntegrationTests {
 
     @Test
     public void updatePostTest() {
-        User user = createUser("update.post@gmail.com");
+        User user = createUser("update.post@gmail.com", UserRole.ROLE_USER);
         Post post = createPost("Title to update", user, PostStatus.DRAFT);
 
         String title = "Updated Title";
@@ -162,7 +181,7 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostTest() {
-        User user = createUser("delete.post@gmail.com");
+        User user = createUser("delete.post@gmail.com", UserRole.ROLE_USER);
         Post post = createPost("Title to update", user, PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
@@ -178,7 +197,7 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostAsAdminTest() {
-        User user = createUser("delete.post.admin.user@gmail.com");
+        User user = createUser("delete.post.admin.user@gmail.com", UserRole.ROLE_USER);
         Post post = createPost("Title", user, PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
@@ -194,7 +213,7 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostForbiddenTest() {
-        User user = createUser("delete.post.forbidden@gmail.com");
+        User user = createUser("delete.post.forbidden@gmail.com", UserRole.ROLE_USER);
         Post post = createPost("Title", getAdmin(), PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
@@ -225,13 +244,13 @@ public class PostIntegrationTests {
         return admin;
     }
 
-    private User createUser(String email) {
+    private User createUser(String email, UserRole role) {
         return userRepository.save(
                 User.builder()
                         .email(email)
                         .name("Test user")
                         .password("12345678")
-                        .role(UserRole.ROLE_USER)
+                        .role(role)
                         .build()
         );
     }

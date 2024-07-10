@@ -36,16 +36,29 @@ public class PostController {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
+    @GetMapping("/user/{id}/all")
+    public ResponseEntity<List<PostSummary>> getAllPostsByUserId(@PathVariable Integer id) {
+        return ResponseEntity.ok(postService.getAllPostsByUserId(id));
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<List<PostSummary>> getAllPublishedPostsByUserId(@PathVariable Integer id) {
+        return ResponseEntity.ok(postService.getAllPublishedPostsByUserId(id));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PostDto> getPost(@PathVariable Integer id) {
         return ResponseEntity.ok(postService.getPost(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
     @PutMapping("/{id}")
     public ResponseEntity<PostDto> editPost(@PathVariable Integer id, @RequestBody Post post) {
         return ResponseEntity.ok(postService.editPost(id, post));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePost(@PathVariable Integer id) {
         postService.deletePost(id);
