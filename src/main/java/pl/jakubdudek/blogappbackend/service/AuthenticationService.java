@@ -6,6 +6,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.jakubdudek.blogappbackend.model.dto.request.RegisterRequest;
+import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
@@ -32,6 +34,17 @@ public class AuthenticationService {
         );
     }
 
+    public Jwt register(RegisterRequest request) {
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(UserRole.ROLE_USER)
+                .build();
+
+        return new Jwt(jwtGenerator.generateToken(userRepository.save(user).getEmail()));
+    }
+
     public Jwt logIn(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new BadCredentialsException("Invalid email")
@@ -41,7 +54,7 @@ public class AuthenticationService {
             throw new BadCredentialsException("Invalid password");
         }
 
-        return new Jwt(jwtGenerator.generateToken(user.getUsername()));
+        return new Jwt(jwtGenerator.generateToken(user.getEmail()));
     }
 
     public UserDto authenticate() {

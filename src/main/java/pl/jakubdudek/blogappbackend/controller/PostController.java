@@ -20,6 +20,7 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
     public ResponseEntity<PostDto> addPost(@RequestBody PostRequest post) {
         return ResponseEntity.status(HttpStatus.CREATED).body(postService.addPost(post));
     }

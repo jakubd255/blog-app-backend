@@ -26,14 +26,14 @@ public class PostService {
     private final DtoMapper dtoMapper;
 
     public PostDto addPost(PostRequest request) {
-        System.out.println(authenticationManager.getAuthenticatedUser());
-        Post post = Post.builder()
-                .title(request.getTitle())
-                .body(request.getBody())
-                .status(request.getStatus())
-                .user(authenticationManager.getAuthenticatedUser())
-                .build();
-        return dtoMapper.mapPostToDto(postRepository.save(post));
+        return dtoMapper.mapPostToDto(
+                postRepository.save(Post.builder()
+                        .title(request.getTitle())
+                        .body(request.getBody())
+                        .status(request.getStatus())
+                        .user(authenticationManager.getAuthenticatedUser())
+                        .build()
+        ));
     }
 
     public PostDto getPost(Integer id) {

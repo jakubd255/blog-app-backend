@@ -52,6 +52,14 @@ public class UserService {
         }
     }
 
+    public void updateRole(Integer id, UserRole role) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+        user.setRole(role);
+        userRepository.save(user);
+    }
+
     public String updateProfileImage(Integer id, MultipartFile file) throws IOException {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("User not found")
