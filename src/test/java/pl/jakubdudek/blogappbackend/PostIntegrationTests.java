@@ -10,19 +10,19 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
+import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
 import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.repository.PostRepository;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
-import pl.jakubdudek.blogappbackend.service.PostService;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
 
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
@@ -36,9 +36,6 @@ public class PostIntegrationTests {
 
     @Autowired
     private JwtGenerator jwtGenerator;
-
-    @Autowired
-    private PostService postService;
 
     @Autowired
     private UserRepository userRepository;
@@ -59,8 +56,16 @@ public class PostIntegrationTests {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<PostRequest> request = new HttpEntity<>(new PostRequest("New post", "Post text", PostStatus.PUBLISHED), headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+        ResponseEntity<PostDto> response = restTemplate.exchange(url, HttpMethod.POST, request, PostDto.class);
 
+        assertNotNull(response.getBody());
+
+        Post newPost = postRepository.findById(response.getBody().id()).orElse(null);
+
+        assertNotNull(newPost);
+        assertNotNull(response.getBody());
+        assertNotNull(newPost.getDate());
+        assertNotNull(newPost.getId());
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
@@ -141,15 +146,23 @@ public class PostIntegrationTests {
 
         HttpEntity<PostRequest> request = new HttpEntity<>(new PostRequest(title, body, status), headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
+        ResponseEntity<PostDto> response = restTemplate.exchange(url, HttpMethod.PUT, request, PostDto.class);
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         Post updatedPost = postRepository.findById(post.getId()).orElse(null);
-        assert updatedPost != null;
 
+        assertNotNull(updatedPost);
+        assertNotNull(updatedPost.getDate());
         assertEquals(title, updatedPost.getTitle());
         assertEquals(body, updatedPost.getBody());
         assertEquals(status, updatedPost.getStatus());
+
+        if(post.getStatus().equals(PostStatus.DRAFT) && updatedPost.getStatus().equals(PostStatus.PUBLISHED)) {
+            assertNotEquals(post.getDate(), updatedPost.getDate());
+        }
+        else {
+            assertEquals(post.getDate(), updatedPost.getDate());
+        }
     }
 
     @Test

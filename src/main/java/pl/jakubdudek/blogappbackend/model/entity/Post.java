@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
 import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
 
 import java.util.Date;
@@ -28,15 +27,19 @@ public class Post {
     @Lob
     private String body;
 
-    //@Column(nullable = false)
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PostStatus status;
-
-    @CreationTimestamp
-    @Column(updatable = false)
-    private Date date;
 
     @ManyToOne
     @JoinColumn(name = "userId")
     private User user;
+
+    @Column(nullable = false)
+    private Date date;
+
+    @PrePersist
+    protected void onCreate() {
+        this.date = new Date();
+    }
 }

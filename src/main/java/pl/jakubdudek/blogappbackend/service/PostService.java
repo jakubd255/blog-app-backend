@@ -15,6 +15,7 @@ import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.repository.PostRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -68,6 +69,9 @@ public class PostService {
                 post.setBody(newPost.getBody());
             }
             if(newPost.getStatus() != null) {
+                if(post.getStatus().equals(PostStatus.DRAFT) && newPost.getStatus().equals(PostStatus.PUBLISHED)) {
+                    post.setDate(new Date());
+                }
                 post.setStatus(newPost.getStatus());
             }
 
