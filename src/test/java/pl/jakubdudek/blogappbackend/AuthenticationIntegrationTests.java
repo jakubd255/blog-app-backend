@@ -43,44 +43,43 @@ public class AuthenticationIntegrationTests {
 
     @Test
     public void authenticationTest() {
-        User user = userRepository.save(
-                new User(null, "authentication@gmail.com", "authentication", "12345678", null, UserRole.ROLE_USER)
+        User user = createUser("authentication@gmail.com", "12345678");
+
+        ResponseEntity<UserDto> response = restTemplate.exchange(
+                getUrl(""),
+                HttpMethod.GET,
+                new HttpEntity<>(createAuthHeaders(user.getEmail())),
+                UserDto.class
         );
 
-        String url = "http://localhost:"+port+"/api/auth";
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-
-        ResponseEntity<UserDto> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), UserDto.class);
-
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assert response.getBody() != null;
+        assertNotNull(response.getBody());
         assertEquals(user.getId(), response.getBody().id());
     }
 
     @Test
     public void authenticationInvalidTokenTest() {
-        String url = "http://localhost:"+port+"/api/auth";
         String authToken = "Bearer jkhjkhjd.as2kasdhkjh345sadsadasdasfsdfsdfsd32hv4hj2gv34asdajgfasd234hj.gasd23hj4";
-
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authToken);
 
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl(""),
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                String.class
+        );
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 
     @Test
     public void authenticationUserNotFoundTest() {
-        String url = "http://localhost:"+port+"/api/auth";
-        String authToken = "Bearer " + jwtGenerator.generateToken("not.found@gmail.com");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl(""),
+                HttpMethod.GET,
+                new HttpEntity<>(createAuthHeaders("not.found@gmail.com")),
+                String.class
+        );
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
@@ -89,20 +88,20 @@ public class AuthenticationIntegrationTests {
         String oldPassword = "12345678";
         String newPassword = "new_password";
 
-        User user = userRepository.save(
-                new User(null, "update.password@gmail.com", "updatePassword", passwordEncoder.encode(oldPassword), null, UserRole.ROLE_USER)
+        User user = createUser("update.password@gmail.com", oldPassword);
+
+        HttpEntity<PasswordUpdateRequest> request = new HttpEntity<>(
+                new PasswordUpdateRequest(oldPassword, newPassword),
+                createAuthHeaders(user.getEmail())
         );
 
-        String url = "http://localhost:"+port+"/api/auth/password";
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/password"),
+                HttpMethod.PUT,
+                request,
+                String.class
+        );
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<PasswordUpdateRequest> request = new HttpEntity<>(new PasswordUpdateRequest(oldPassword, newPassword), headers);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, request, String.class);
         User updatedUser = userRepository.findByEmail(user.getEmail()).orElse(null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -116,20 +115,20 @@ public class AuthenticationIntegrationTests {
         String oldEmail = "old.email@gmail.com";
         String newEmail = "new.email@gmail.com";
 
-        User user = userRepository.save(
-                new User(null, oldEmail, "updateEmail", "12345678", null, UserRole.ROLE_USER)
+        User user = createUser(oldEmail, "12345678");
+
+        HttpEntity<EmailUpdateRequest> request = new HttpEntity<>(
+                new EmailUpdateRequest(newEmail),
+                createAuthHeaders(user.getEmail())
         );
 
-        String url = "http://localhost:"+port+"/api/auth/email";
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
+        ResponseEntity<Jwt> response = restTemplate.exchange(
+                getUrl("/email"),
+                HttpMethod.PUT,
+                request,
+                Jwt.class
+        );
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<EmailUpdateRequest> request = new HttpEntity<>(new EmailUpdateRequest(newEmail), headers);
-
-        ResponseEntity<Jwt> response = restTemplate.exchange(url, HttpMethod.PUT, request, Jwt.class);
         User updatedUser = userRepository.findByEmail(newEmail).orElse(null);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -140,15 +139,31 @@ public class AuthenticationIntegrationTests {
     @Test
     public void duplicateEmailTest() {
         String email = "taken.email@gmail.com";
-
-        User user1 = userRepository.save(
-                new User(null, email, "duplicateEmail", "12345678", null, UserRole.ROLE_USER)
-        );
-
+        createUser(email, "12345678");
         assertThrows(DataIntegrityViolationException.class, () -> {
-            User user2 = userRepository.save(
-                    new User(null, email, "duplicateEmail", "12345678", null, UserRole.ROLE_USER)
-            );
+            createUser(email, "12345678");
         });
+    }
+
+    private String getUrl(String route) {
+        return "http://localhost:"+port+"/api/auth"+route;
+    }
+
+    private HttpHeaders createAuthHeaders(String email) {
+        String authToken = "Bearer "+jwtGenerator.generateToken(email);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authToken);
+        return headers;
+    }
+
+    private User createUser(String email, String password) {
+        return userRepository.save(
+                User.builder()
+                        .email(email)
+                        .name("Test user")
+                        .password(passwordEncoder.encode(password))
+                        .role(UserRole.ROLE_USER)
+                        .build()
+        );
     }
 }

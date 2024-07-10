@@ -20,8 +20,7 @@ import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.*;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @RunWith(SpringRunner.class)
@@ -45,34 +44,39 @@ public class UserIntegrationTests {
 
     @Test
     public void getAllUsersTest() {
-        String url = "http://localhost:"+port+"/api/users";
-        ResponseEntity<List<UserDto>> response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<>(){});
+        ResponseEntity<List<UserDto>> response = restTemplate.exchange(
+                getUrl(""),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                new ParameterizedTypeReference<>(){}
+        );
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assert response.getBody() != null;
+        assertNotNull(response.getBody());
         assertNotEquals(0, response.getBody().size());
     }
 
     @Test
     public void getUserNotFoundTest() {
-        String url = "http://localhost:"+port+"/api/users/13";
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/13"),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                String.class
+        );
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     public void deleteUserTest() {
-        User user = userRepository.save(
-                new User(null, "delete.user@gmail.com", "deleteUser", "12345678", null, UserRole.ROLE_USER)
+        User user = createUser("delete.user@gmail.com");
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+user.getId()),
+                HttpMethod.DELETE,
+                new HttpEntity<>(createAuthHeaders(user.getEmail())),
+                String.class
         );
-
-        String url = "http://localhost:"+port+"/api/users/"+user.getId();
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThrows(EntityNotFoundException.class, () -> userService.getUser(user.getId()));
@@ -80,20 +84,15 @@ public class UserIntegrationTests {
 
     @Test
     public void deleteUserAsAdminTest() {
-        User admin = userRepository.findById(1).orElse(null);
-        assert admin != null;
+        User admin = getAdmin();
+        User user = createUser("delete.user.admin@gmail.com");
 
-        User user = userRepository.save(
-                new User(null, "delete.user.admin@gmail.com", "deleteUserAsAdmin", "12345678", null, UserRole.ROLE_USER)
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+user.getId()),
+                HttpMethod.DELETE,
+                new HttpEntity<>(createAuthHeaders(admin.getEmail())),
+                String.class
         );
-
-        String url = "http://localhost:"+port+"/api/users/"+user.getId();
-        String authToken = "Bearer " + jwtGenerator.generateToken(admin.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThrows(EntityNotFoundException.class, () -> userService.getUser(user.getId()));
@@ -101,22 +100,45 @@ public class UserIntegrationTests {
 
     @Test
     public void deleteUserForbiddenTest() {
-        User userToDelete = userRepository.save(
-                new User(null, "delete.user.forbidden1.com", "deleteUserForbidden", "12345678", null, UserRole.ROLE_USER)
+        User userToDelete = createUser("delete.user.forbidden1.com");
+        User authUser = createUser("delete.user.forbidden2.com");
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+userToDelete.getId()),
+                HttpMethod.DELETE,
+                new HttpEntity<>(createAuthHeaders(authUser.getEmail())),
+                String.class
         );
-        User authUser = userRepository.save(
-                new User(null, "delete.user.forbidden2.com", "deleteUserForbidden", "12345678", null, UserRole.ROLE_USER)
-        );
-
-        String url = "http://localhost:"+port+"/api/users/"+userToDelete.getId();
-        String authToken = "Bearer " + jwtGenerator.generateToken(authUser.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertEquals("You don't have permission to delete this user", response.getBody());
+    }
+
+    private String getUrl(String route) {
+        return "http://localhost:"+port+"/api/users"+route;
+    }
+
+    private HttpHeaders createAuthHeaders(String email) {
+        String authToken = "Bearer "+jwtGenerator.generateToken(email);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authToken);
+        return headers;
+    }
+
+    private User createUser(String email) {
+        return userRepository.save(
+                User.builder()
+                        .email(email)
+                        .name("Test user")
+                        .password("12345678")
+                        .role(UserRole.ROLE_USER)
+                        .build()
+        );
+    }
+
+    private User getAdmin() {
+        User admin = userRepository.findById(1).orElse(null);
+        assert admin != null;
+        return admin;
     }
 }

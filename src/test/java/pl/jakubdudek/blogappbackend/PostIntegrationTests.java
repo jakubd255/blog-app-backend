@@ -45,18 +45,17 @@ public class PostIntegrationTests {
 
     @Test
     public void addPostTest() {
-        User admin = userRepository.findById(1).orElse(null);
-        assert admin != null;
+        HttpEntity<PostRequest> request = new HttpEntity<>(
+                new PostRequest("New post", "Post text", PostStatus.PUBLISHED),
+                createAuthHeaders(getAdmin().getEmail())
+        );
 
-        String url = "http://localhost:"+port+"/api/posts";
-        String authToken = "Bearer " + jwtGenerator.generateToken(admin.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        HttpEntity<PostRequest> request = new HttpEntity<>(new PostRequest("New post", "Post text", PostStatus.PUBLISHED), headers);
-        ResponseEntity<PostDto> response = restTemplate.exchange(url, HttpMethod.POST, request, PostDto.class);
+        ResponseEntity<PostDto> response = restTemplate.exchange(
+                getUrl(""),
+                HttpMethod.POST,
+                request,
+                PostDto.class
+        );
 
         assertNotNull(response.getBody());
 
@@ -71,15 +70,20 @@ public class PostIntegrationTests {
 
     @Test
     public void getPostsTest() {
-        User admin = userRepository.findById(1).orElse(null);
-        assert admin != null;
+        User admin = getAdmin();
 
         postRepository.save(Post.builder().title("post 1").body("test 1").status(PostStatus.PUBLISHED).user(admin).build());
         postRepository.save(Post.builder().title("post 2").body("test 2").status(PostStatus.DRAFT).user(admin).build());
 
-        String url = "http://localhost:"+port+"/api/posts";
+        createPost("Post 1", admin, PostStatus.PUBLISHED);
+        createPost("Post 2", admin, PostStatus.DRAFT);
 
-        ResponseEntity<List> response = restTemplate.exchange(url, HttpMethod.GET, HttpEntity.EMPTY, List.class);
+        ResponseEntity<List> response = restTemplate.exchange(
+                getUrl(""),
+                HttpMethod.GET,
+                HttpEntity.EMPTY,
+                List.class
+        );
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         List<Map<String, Object>> posts = response.getBody();
@@ -90,63 +94,54 @@ public class PostIntegrationTests {
 
     @Test
     public void getAllPostsTest() {
-        User admin = userRepository.findById(1).orElse(null);
-        assert admin != null;
+        User admin = getAdmin();
 
-        postRepository.save(Post.builder().title("post 3").body("test 3").status(PostStatus.PUBLISHED).user(admin).build());
-        postRepository.save(Post.builder().title("post 4").body("test 4").status(PostStatus.DRAFT).user(admin).build());
+        createPost("Post 3", admin, PostStatus.PUBLISHED);
+        createPost("Post 4", admin, PostStatus.DRAFT);
 
-        String url = "http://localhost:"+port+"/api/posts/all";
-        String authToken = "Bearer " + jwtGenerator.generateToken(admin.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<List> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), List.class);
+        ResponseEntity<List> response = restTemplate.exchange(
+                getUrl("/all"),
+                HttpMethod.GET,
+                new HttpEntity<>(createAuthHeaders(admin.getEmail())),
+                List.class
+        );
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     public void getPostsForbiddenTest() {
-        User user = userRepository.save(
-                new User(null, "get.posts.forbidden.@gmail.com", "getPostsForbidden", "12345678", null, UserRole.ROLE_USER)
+        User user = createUser("get.posts.forbidden.@gmail.com");
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/all"),
+                HttpMethod.GET,
+                new HttpEntity<>(createAuthHeaders(user.getEmail())),
+                String.class
         );
-
-        String url = "http://localhost:"+port+"/api/posts/all";
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     @Test
     public void updatePostTest() {
-        User user = userRepository.save(
-                new User(null, "update.post@gmail.com", "updatePost", "12345678", null, UserRole.ROLE_ADMIN)
-        );
-        Post post = postRepository.save(
-                Post.builder().title("Title to update").body("Text to update").status(PostStatus.DRAFT).user(user).build()
-        );
-
-        String url = "http://localhost:"+port+"/api/posts/"+post.getId();
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
+        User user = createUser("update.post@gmail.com");
+        Post post = createPost("Title to update", user, PostStatus.DRAFT);
 
         String title = "Updated Title";
         String body = "Updated text";
         PostStatus status = PostStatus.PUBLISHED;
 
-        HttpEntity<PostRequest> request = new HttpEntity<>(new PostRequest(title, body, status), headers);
+        HttpEntity<PostRequest> request = new HttpEntity<>(
+                new PostRequest(title, body, status),
+                createAuthHeaders(user.getEmail())
+        );
 
-        ResponseEntity<PostDto> response = restTemplate.exchange(url, HttpMethod.PUT, request, PostDto.class);
+        ResponseEntity<PostDto> response = restTemplate.exchange(
+                getUrl("/"+post.getId()),
+                HttpMethod.PUT,
+                request,
+                PostDto.class
+        );
+
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         Post updatedPost = postRepository.findById(post.getId()).orElse(null);
@@ -167,21 +162,15 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostTest() {
-        User user = userRepository.save(
-                new User(null, "delete.post@gmail.com", "deletePost", "12345678", null, UserRole.ROLE_USER)
+        User user = createUser("delete.post@gmail.com");
+        Post post = createPost("Title to update", user, PostStatus.PUBLISHED);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+post.getId()),
+                HttpMethod.DELETE,
+                new HttpEntity<>(createAuthHeaders(user.getEmail())),
+                String.class
         );
-        Post post = postRepository.save(
-                Post.builder().title("Title").body("Text").status(PostStatus.PUBLISHED).user(user).build()
-        );
-
-        String url = "http://localhost:"+port+"/api/posts/"+post.getId();
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Successfully deleted post: "+post.getId(), response.getBody());
@@ -189,25 +178,15 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostAsAdminTest() {
-        User admin = userRepository.findById(1).orElse(null);
-        assert admin != null;
+        User user = createUser("delete.post.admin.user@gmail.com");
+        Post post = createPost("Title", user, PostStatus.PUBLISHED);
 
-        User user = userRepository.save(
-                new User(null, "delete.post.admin.user@gmail.com", "deletePost", "12345678", null, UserRole.ROLE_USER)
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+post.getId()),
+                HttpMethod.DELETE,
+                new HttpEntity<>(createAuthHeaders(getAdmin().getEmail())),
+                String.class
         );
-
-        Post post = postRepository.save(
-                Post.builder().title("Title").body("Text").status(PostStatus.PUBLISHED).user(user).build()
-        );
-
-        String url = "http://localhost:"+port+"/api/posts/"+post.getId();
-        String authToken = "Bearer " + jwtGenerator.generateToken(admin.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Successfully deleted post: "+post.getId(), response.getBody());
@@ -215,27 +194,56 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostForbiddenTest() {
-        User admin = userRepository.findById(1).orElse(null);
-        assert admin != null;
+        User user = createUser("delete.post.forbidden@gmail.com");
+        Post post = createPost("Title", getAdmin(), PostStatus.PUBLISHED);
 
-        User user = userRepository.save(
-                new User(null, "delete.post.forbidden@gmail.com", "deletePostForbidden", "12345678", null, UserRole.ROLE_USER)
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+post.getId()),
+                HttpMethod.DELETE,
+                new HttpEntity<>(createAuthHeaders(user.getEmail())),
+                String.class
         );
-
-        Post post = postRepository.save(
-                Post.builder().title("Title").body("Text").status(PostStatus.PUBLISHED).user(admin).build()
-        );
-
-        String url = "http://localhost:"+port+"/api/posts/"+post.getId();
-        String authToken = "Bearer " + jwtGenerator.generateToken(user.getEmail());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", authToken);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, new HttpEntity<>(headers), String.class);
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
         assertEquals("You don't have permission to delete this post", response.getBody());
+    }
+
+    private String getUrl(String route) {
+        return "http://localhost:"+port+"/api/posts"+route;
+    }
+
+    private HttpHeaders createAuthHeaders(String email) {
+        String authToken = "Bearer "+jwtGenerator.generateToken(email);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", authToken);
+        return headers;
+    }
+
+    private User getAdmin() {
+        User admin = userRepository.findById(1).orElse(null);
+        assert admin != null;
+        return admin;
+    }
+
+    private User createUser(String email) {
+        return userRepository.save(
+                User.builder()
+                        .email(email)
+                        .name("Test user")
+                        .password("12345678")
+                        .role(UserRole.ROLE_USER)
+                        .build()
+        );
+    }
+
+    private Post createPost(String title, User user, PostStatus status) {
+        return postRepository.save(
+                Post.builder()
+                        .title(title)
+                        .body("Text")
+                        .status(status)
+                        .user(user)
+                        .build()
+        );
     }
 }
