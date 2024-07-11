@@ -6,6 +6,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserSummary;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.service.UserService;
@@ -25,7 +26,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
+    public ResponseEntity<List<UserSummary>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 

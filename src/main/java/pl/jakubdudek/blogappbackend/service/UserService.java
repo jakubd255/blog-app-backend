@@ -1,10 +1,12 @@
 package pl.jakubdudek.blogappbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserSummary;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
@@ -31,8 +33,8 @@ public class UserService {
         );
     }
 
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map(dtoMapper::mapUserToDto).toList();
+    public List<UserSummary> getAllUsers() {
+        return userRepository.getUsers();
     }
 
     public UserDto editUser(Integer id, User newUser) {
@@ -52,12 +54,12 @@ public class UserService {
         }
     }
 
+    @Transactional
     public void updateRole(Integer id, UserRole role) {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("User not found")
-        );
-        user.setRole(role);
-        userRepository.save(user);
+        int modified = userRepository.updateUserRole(id, role);
+        if(modified == 0) {
+            throw new EntityNotFoundException("User not found");
+        }
     }
 
     public String updateProfileImage(Integer id, MultipartFile file) throws IOException {

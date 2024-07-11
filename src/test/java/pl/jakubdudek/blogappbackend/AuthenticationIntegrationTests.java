@@ -153,6 +153,7 @@ public class AuthenticationIntegrationTests {
         String authToken = "Bearer "+jwtGenerator.generateToken(email);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }
 

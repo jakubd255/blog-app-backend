@@ -142,7 +142,7 @@ public class PostIntegrationTests {
 
     @Test
     public void updatePostTest() {
-        User user = createUser("update.post@gmail.com", UserRole.ROLE_USER);
+        User user = createUser("update.post@gmail.com", UserRole.ROLE_REDACTOR);
         Post post = createPost("Title to update", user, PostStatus.DRAFT);
 
         String title = "Updated Title";
@@ -181,7 +181,7 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostTest() {
-        User user = createUser("delete.post@gmail.com", UserRole.ROLE_USER);
+        User user = createUser("delete.post@gmail.com", UserRole.ROLE_REDACTOR);
         Post post = createPost("Title to update", user, PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
@@ -213,7 +213,7 @@ public class PostIntegrationTests {
 
     @Test
     public void deletePostForbiddenTest() {
-        User user = createUser("delete.post.forbidden@gmail.com", UserRole.ROLE_USER);
+        User user = createUser("delete.post.forbidden@gmail.com", UserRole.ROLE_REDACTOR);
         Post post = createPost("Title", getAdmin(), PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
@@ -235,6 +235,7 @@ public class PostIntegrationTests {
         String authToken = "Bearer "+jwtGenerator.generateToken(email);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }
 

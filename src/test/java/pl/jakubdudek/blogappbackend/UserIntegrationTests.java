@@ -11,7 +11,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
@@ -44,7 +43,7 @@ public class UserIntegrationTests {
 
     @Test
     public void getAllUsersTest() {
-        ResponseEntity<List<UserDto>> response = restTemplate.exchange(
+        ResponseEntity<List> response = restTemplate.exchange(
                 getUrl(""),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
@@ -59,12 +58,55 @@ public class UserIntegrationTests {
     @Test
     public void getUserNotFoundTest() {
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrl("/13"),
+                getUrl("/0"),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 String.class
         );
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void updateUserRoleTest() {
+        User user = createUser("update.role@gmail.com");
+
+        HttpEntity<UserRole> request = new HttpEntity<>(
+                UserRole.ROLE_REDACTOR,
+                createAuthHeaders(getAdmin().getEmail())
+        );
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+user.getId()+"/role"),
+                HttpMethod.PUT,
+                request,
+                String.class
+        );
+
+        User updatedUser = userRepository.findById(user.getId()).orElse(null);
+
+        assertNotNull(updatedUser);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(UserRole.ROLE_REDACTOR, updatedUser.getRole());
+    }
+
+    @Test
+    public void updateUserRoleNotFoundTest() {
+        User user = createUser("update.role.notfound@gmail.com");
+
+        HttpEntity<UserRole> request = new HttpEntity<>(
+                UserRole.ROLE_REDACTOR,
+                createAuthHeaders(getAdmin().getEmail())
+        );
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrl("/"+23472+"/role"),
+                HttpMethod.PUT,
+                request,
+                String.class
+        );
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals("User not found", response.getBody());
     }
 
     @Test
@@ -122,6 +164,7 @@ public class UserIntegrationTests {
         String authToken = "Bearer "+jwtGenerator.generateToken(email);
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authToken);
+        headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
     }
 
