@@ -31,7 +31,6 @@ This application provides functionalities for user authentication, profile manag
 
 
 ## Entities
-![](./screenshots/entities.png)  
 ### User
 - id (Integer): Unique identifier for the user
 - name (String): User's name
