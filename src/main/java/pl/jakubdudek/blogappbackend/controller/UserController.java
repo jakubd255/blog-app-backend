@@ -5,8 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import pl.jakubdudek.blogappbackend.model.dto.request.UserUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.UserSummary;
+import pl.jakubdudek.blogappbackend.model.dto.response.IUserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.service.UserService;
@@ -26,13 +27,13 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<UserSummary>> getAllUsers() {
+    public ResponseEntity<List<IUserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> editUser(@PathVariable Integer id, @RequestBody User user) {
-        return ResponseEntity.ok(userService.editUser(id, user));
+    public ResponseEntity<UserDto> editUser(@PathVariable Integer id, @RequestBody UserUpdateRequest request) {
+        return ResponseEntity.ok(userService.editUser(id, request));
     }
 
     @PutMapping("/{id}/role")
@@ -45,6 +46,12 @@ public class UserController {
     @PutMapping("/{id}/profile-image")
     public ResponseEntity<String> updateProfileImage(@PathVariable Integer id, @RequestParam("image") MultipartFile file) throws IOException {
         return ResponseEntity.ok(userService.updateProfileImage(id, file));
+    }
+
+    @DeleteMapping("/{id}/profile-image")
+    public ResponseEntity<String> removeUserProfileImage(@PathVariable Integer id) throws IOException {
+        userService.removeUserProfileImage(id);
+        return ResponseEntity.ok("Successfully deleted profile image");
     }
 
     @DeleteMapping("/{id}")

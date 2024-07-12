@@ -21,6 +21,7 @@ import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -44,7 +45,7 @@ public class PostIntegrationTests {
     private PostRepository postRepository;
 
     @Test
-    public void addPostTest() {
+    public void testAddPost() {
         HttpEntity<PostRequest> request = new HttpEntity<>(
                 new PostRequest("New post", "Post text", PostStatus.PUBLISHED),
                 createAuthHeaders(getAdmin().getEmail())
@@ -69,8 +70,8 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void addPostForbiddenTest() {
-        User user = createUser("post.user@gmail.com", UserRole.ROLE_USER);
+    public void testAddPostForbidden() {
+        User user = createUser(UserRole.ROLE_USER);
 
         HttpEntity<PostRequest> request = new HttpEntity<>(
                 new PostRequest("New post", "Post text", PostStatus.PUBLISHED),
@@ -88,14 +89,11 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void getPostsTest() {
+    public void testGetPosts() {
         User admin = getAdmin();
 
-        postRepository.save(Post.builder().title("post 1").body("test 1").status(PostStatus.PUBLISHED).user(admin).build());
-        postRepository.save(Post.builder().title("post 2").body("test 2").status(PostStatus.DRAFT).user(admin).build());
-
-        createPost("Post 1", admin, PostStatus.PUBLISHED);
-        createPost("Post 2", admin, PostStatus.DRAFT);
+        createPost(admin, PostStatus.PUBLISHED);
+        createPost(admin, PostStatus.DRAFT);
 
         ResponseEntity<List> response = restTemplate.exchange(
                 getUrl(""),
@@ -112,11 +110,11 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void getAllPostsTest() {
+    public void testGetAllPosts() {
         User admin = getAdmin();
 
-        createPost("Post 3", admin, PostStatus.PUBLISHED);
-        createPost("Post 4", admin, PostStatus.DRAFT);
+        createPost(admin, PostStatus.PUBLISHED);
+        createPost(admin, PostStatus.DRAFT);
 
         ResponseEntity<List> response = restTemplate.exchange(
                 getUrl("/all"),
@@ -128,8 +126,8 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void getPostsForbiddenTest() {
-        User user = createUser("get.posts.forbidden.@gmail.com", UserRole.ROLE_USER);
+    public void testGetPostsForbidden() {
+        User user = createUser(UserRole.ROLE_USER);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 getUrl("/all"),
@@ -141,9 +139,29 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void updatePostTest() {
-        User user = createUser("update.post@gmail.com", UserRole.ROLE_REDACTOR);
-        Post post = createPost("Title to update", user, PostStatus.DRAFT);
+    public void testGetPostsByUserId() {
+        User user = createUser(UserRole.ROLE_REDACTOR);
+
+        createPost(user, PostStatus.DRAFT);
+        createPost(user, PostStatus.DRAFT);
+        createPost(user, PostStatus.PUBLISHED);
+
+        createPost(getAdmin(), PostStatus.DRAFT);
+
+        ResponseEntity<List> response = restTemplate.exchange(
+                getUrl("/user/"+user.getId()+"/all"),
+                HttpMethod.GET,
+                new HttpEntity<>(createAuthHeaders(user.getEmail())),
+                List.class
+        );
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(3, response.getBody().size());
+    }
+
+    @Test
+    public void testUpdatePost() {
+        User user = createUser(UserRole.ROLE_REDACTOR);
+        Post post = createPost(user, PostStatus.DRAFT);
 
         String title = "Updated Title";
         String body = "Updated text";
@@ -180,9 +198,9 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void deletePostTest() {
-        User user = createUser("delete.post@gmail.com", UserRole.ROLE_REDACTOR);
-        Post post = createPost("Title to update", user, PostStatus.PUBLISHED);
+    public void testDeletePost() {
+        User user = createUser(UserRole.ROLE_REDACTOR);
+        Post post = createPost(user, PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 getUrl("/"+post.getId()),
@@ -196,9 +214,9 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void deletePostAsAdminTest() {
-        User user = createUser("delete.post.admin.user@gmail.com", UserRole.ROLE_USER);
-        Post post = createPost("Title", user, PostStatus.PUBLISHED);
+    public void testDeletePostAsAdmin() {
+        User user = createUser(UserRole.ROLE_USER);
+        Post post = createPost(user, PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 getUrl("/"+post.getId()),
@@ -212,9 +230,9 @@ public class PostIntegrationTests {
     }
 
     @Test
-    public void deletePostForbiddenTest() {
-        User user = createUser("delete.post.forbidden@gmail.com", UserRole.ROLE_REDACTOR);
-        Post post = createPost("Title", getAdmin(), PostStatus.PUBLISHED);
+    public void testDeletePostForbidden() {
+        User user = createUser(UserRole.ROLE_REDACTOR);
+        Post post = createPost(getAdmin(), PostStatus.PUBLISHED);
 
         ResponseEntity<String> response = restTemplate.exchange(
                 getUrl("/"+post.getId()),
@@ -224,7 +242,7 @@ public class PostIntegrationTests {
         );
 
         assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
-        assertEquals("You don't have permission to delete this post", response.getBody());
+        assertEquals("You don't have permission to this post", response.getBody());
     }
 
     private String getUrl(String route) {
@@ -245,10 +263,10 @@ public class PostIntegrationTests {
         return admin;
     }
 
-    private User createUser(String email, UserRole role) {
+    private User createUser(UserRole role) {
         return userRepository.save(
                 User.builder()
-                        .email(email)
+                        .email(UUID.randomUUID()+"@gmail.com")
                         .name("Test user")
                         .password("12345678")
                         .role(role)
@@ -256,10 +274,10 @@ public class PostIntegrationTests {
         );
     }
 
-    private Post createPost(String title, User user, PostStatus status) {
+    private Post createPost(User user, PostStatus status) {
         return postRepository.save(
                 Post.builder()
-                        .title(title)
+                        .title(UUID.randomUUID().toString())
                         .body("Text")
                         .status(status)
                         .user(user)

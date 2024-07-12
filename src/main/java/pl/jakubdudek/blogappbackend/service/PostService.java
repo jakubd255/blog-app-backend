@@ -7,7 +7,7 @@ import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.PostSummary;
+import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
@@ -17,6 +17,7 @@ import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,78 +38,61 @@ public class PostService {
     }
 
     public PostDto getPost(Integer id) {
-        Post post = postRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Post not found")
-        );
-
-        if(post.getStatus().equals(PostStatus.DRAFT) && !isUserPermittedToPost(post)) {
-            throw new ForbiddenException("Only admin or author has access to drafts");
+        Post post = findPostById(id);
+        if(post.getStatus().equals(PostStatus.DRAFT)) {
+            requirePermissionToPost(post);
         }
-
         return dtoMapper.mapPostToDto(post);
     }
 
-    public List<PostSummary> getAllPublishedPosts() {
+    public List<IPostSummaryDto> getAllPublishedPosts() {
         return postRepository.findPublishedPostSummaries();
     }
 
-    public List<PostSummary> getAllPosts() {
+    public List<IPostSummaryDto> getAllPosts() {
         return postRepository.findPostSummaries();
     }
 
-    public List<PostSummary> getAllPublishedPostsByUserId(Integer id) {
+    public List<IPostSummaryDto> getAllPublishedPostsByUserId(Integer id) {
         return postRepository.findPublishedPostSummariesByUserId(id);
     }
 
-    public List<PostSummary> getAllPostsByUserId(Integer id) {
+    public List<IPostSummaryDto> getAllPostsByUserId(Integer id) {
         return postRepository.findPostSummariesByUserId(id);
     }
 
     public PostDto editPost(Integer id, Post newPost) {
-        Post post = postRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Post not found")
-        );
+        Post post = findPostById(id);
+        requirePermissionToPost(post);
 
-        if(isUserPermittedToPost(post)) {
-            if(newPost.getTitle() != null && !newPost.getTitle().isEmpty()) {
-                post.setTitle(newPost.getTitle());
-            }
-            if(newPost.getBody() != null && !newPost.getBody().isEmpty()) {
-                post.setBody(newPost.getBody());
-            }
-            if(newPost.getStatus() != null) {
-                if(post.getStatus().equals(PostStatus.DRAFT) && newPost.getStatus().equals(PostStatus.PUBLISHED)) {
-                    post.setDate(new Date());
-                }
-                post.setStatus(newPost.getStatus());
-            }
+        post.setTitle(Optional.of(newPost.getTitle()).orElse(post.getTitle()));
+        post.setBody(Optional.of(newPost.getBody()).orElse(post.getBody()));
 
-            return dtoMapper.mapPostToDto(postRepository.save(post));
+        if(newPost.getStatus() == PostStatus.PUBLISHED && post.getStatus() == PostStatus.DRAFT) {
+            post.setDate(new Date());
         }
-        else {
-            throw new ForbiddenException("You don't have permission to update this post");
-        }
+        post.setStatus(Optional.of(newPost.getStatus()).orElse(post.getStatus()));
+
+        return dtoMapper.mapPostToDto(postRepository.save(post));
     }
 
     public void deletePost(Integer id) {
-        Post post = postRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Post not found")
-        );
+        Post post = findPostById(id);
+        requirePermissionToPost(post);
 
-        if(isUserPermittedToPost(post)) {
-            postRepository.deleteById(id);
-        }
-        else {
-            throw new ForbiddenException("You don't have permission to delete this post");
-        }
+        postRepository.deleteById(id);
     }
 
-    private boolean isUserPermittedToPost(Post post) {
-        if(!authenticationManager.isUserAuthenticated()) {
-            return false;
-        }
+    private Post findPostById(Integer id) {
+        return postRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+    }
 
+    private void requirePermissionToPost(Post post) {
         User user = authenticationManager.getAuthenticatedUser();
-        return user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(post.getUser().getId());
+
+        if(user == null || !(user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(post.getUser().getId()))) {
+            throw new ForbiddenException("You don't have permission to this post");
+        }
     }
 }

@@ -1,12 +1,14 @@
 package pl.jakubdudek.blogappbackend.service;
 
+import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
-import pl.jakubdudek.blogappbackend.model.dto.response.UserSummary;
+import pl.jakubdudek.blogappbackend.model.dto.request.UserUpdateRequest;
+import pl.jakubdudek.blogappbackend.model.dto.response.IUserDto;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
@@ -16,6 +18,7 @@ import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -26,32 +29,21 @@ public class UserService {
     private final FileService fileService;
 
     public UserDto getUser(Integer id) {
-        return dtoMapper.mapUserToDto(
-                userRepository.findById(id).orElseThrow(
-                        () -> new EntityNotFoundException("User not found")
-                )
-        );
+        return dtoMapper.mapUserToDto(findUserById(id));
     }
 
-    public List<UserSummary> getAllUsers() {
+    public List<IUserDto> getAllUsers() {
         return userRepository.getUsers();
     }
 
-    public UserDto editUser(Integer id, User newUser) {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("User not found")
-        );
+    public UserDto editUser(Integer id, UserUpdateRequest request) {
+        User user = findUserById(id);
+        requirePermissionToUser(user);
 
-        if(isUserPermittedToUser(user)) {
-            if(newUser.getName() != null && !newUser.getName().isEmpty()) {
-                user.setName(newUser.getName());
-            }
+        user.setName(Optional.of(request.getName()).orElse(user.getName()));
+        user.setBio(request.getBio());
 
-            return dtoMapper.mapUserToDto(userRepository.save(user));
-        }
-        else {
-            throw new ForbiddenException("You don't have permission to update this user");
-        }
+        return dtoMapper.mapUserToDto(userRepository.save(user));
     }
 
     @Transactional
@@ -63,48 +55,49 @@ public class UserService {
     }
 
     public String updateProfileImage(Integer id, MultipartFile file) throws IOException {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("User not found")
-        );
+        User user = findUserById(id);
+        requirePermissionToUser(user);
 
-        if(isUserPermittedToUser(user)) {
-            if(!(user.getProfileImage() == null || user.getProfileImage().isEmpty())) {
-                fileService.deleteFile(user.getProfileImage());
-            }
+        if(StringUtils.isEmpty(user.getProfileImage())) {
+            fileService.deleteFile(user.getProfileImage());
+        }
 
-            String fileName = fileService.uploadFile(file);
-            user.setProfileImage(fileName);
-            userRepository.save(user);
-            return fileName;
-        }
-        else {
-            throw new ForbiddenException("You don't have permission to update this user");
-        }
+        String fileName = fileService.uploadFile(file);
+        user.setProfileImage(fileName);
+        userRepository.save(user);
+        return fileName;
+    }
+
+    public void removeUserProfileImage(Integer id) throws IOException {
+        User user = findUserById(id);
+        requirePermissionToUser(user);
+
+        fileService.deleteFile(user.getProfileImage());
+        user.setProfileImage(null);
+        userRepository.save(user);
     }
 
     public void deleteUser(Integer id) throws IOException {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("User not found")
-        );
+        User user = findUserById(id);
+        requirePermissionToUser(user);
 
-        if(isUserPermittedToUser(user)) {
-            userRepository.deleteById(id);
+        userRepository.deleteById(id);
 
-            if(!(user.getProfileImage() == null || user.getProfileImage().isEmpty())) {
-                fileService.deleteFile(user.getProfileImage());
-            }
-        }
-        else {
-            throw new ForbiddenException("You don't have permission to delete this user");
+        if(!StringUtils.isEmpty(user.getProfileImage())) {
+            fileService.deleteFile(user.getProfileImage());
         }
     }
 
-    private boolean isUserPermittedToUser(User user) {
-        if(!authenticationManager.isUserAuthenticated()) {
-            return false;
-        }
+    private User findUserById(Integer id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+    }
 
+    private void requirePermissionToUser(User user) {
         User authUser = authenticationManager.getAuthenticatedUser();
-        return authUser.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authUser.getId());
+
+        if(authUser == null || !(authUser.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authUser.getId()))) {
+            throw new ForbiddenException("You don't have permission to this user");
+        }
     }
 }

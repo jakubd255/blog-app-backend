@@ -13,12 +13,14 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.Jwt;
+import pl.jakubdudek.blogappbackend.model.dto.response.JwtDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
+
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -42,8 +44,8 @@ public class AuthenticationIntegrationTests {
     private PasswordEncoder passwordEncoder;
 
     @Test
-    public void authenticationTest() {
-        User user = createUser("authentication@gmail.com", "12345678");
+    public void testAuthentication() {
+        User user = createUser(randomEmail(), "12345678");
 
         ResponseEntity<UserDto> response = restTemplate.exchange(
                 getUrl(""),
@@ -58,7 +60,7 @@ public class AuthenticationIntegrationTests {
     }
 
     @Test
-    public void authenticationInvalidTokenTest() {
+    public void testAuthenticationInvalidToken() {
         String authToken = "Bearer jkhjkhjd.as2kasdhkjh345sadsadasdasfsdfsdfsd32hv4hj2gv34asdajgfasd234hj.gasd23hj4";
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", authToken);
@@ -73,7 +75,7 @@ public class AuthenticationIntegrationTests {
     }
 
     @Test
-    public void authenticationUserNotFoundTest() {
+    public void testAuthenticationUserNotFound() {
         ResponseEntity<String> response = restTemplate.exchange(
                 getUrl(""),
                 HttpMethod.GET,
@@ -84,11 +86,11 @@ public class AuthenticationIntegrationTests {
     }
 
     @Test
-    public void updatePasswordTest() {
+    public void testUpdatePassword() {
         String oldPassword = "12345678";
         String newPassword = "new_password";
 
-        User user = createUser("update.password@gmail.com", oldPassword);
+        User user = createUser(randomEmail(), oldPassword);
 
         HttpEntity<PasswordUpdateRequest> request = new HttpEntity<>(
                 new PasswordUpdateRequest(oldPassword, newPassword),
@@ -111,7 +113,7 @@ public class AuthenticationIntegrationTests {
     }
 
     @Test
-    public void updateEmailTest() {
+    public void testUpdateEmail() {
         String oldEmail = "old.email@gmail.com";
         String newEmail = "new.email@gmail.com";
 
@@ -122,11 +124,11 @@ public class AuthenticationIntegrationTests {
                 createAuthHeaders(user.getEmail())
         );
 
-        ResponseEntity<Jwt> response = restTemplate.exchange(
+        ResponseEntity<JwtDto> response = restTemplate.exchange(
                 getUrl("/email"),
                 HttpMethod.PUT,
                 request,
-                Jwt.class
+                JwtDto.class
         );
 
         User updatedUser = userRepository.findByEmail(newEmail).orElse(null);
@@ -137,8 +139,8 @@ public class AuthenticationIntegrationTests {
     }
 
     @Test
-    public void duplicateEmailTest() {
-        String email = "taken.email@gmail.com";
+    public void testDuplicateEmail() {
+        String email = randomEmail();
         createUser(email, "12345678");
         assertThrows(DataIntegrityViolationException.class, () -> {
             createUser(email, "12345678");
@@ -155,6 +157,10 @@ public class AuthenticationIntegrationTests {
         headers.set("Authorization", authToken);
         headers.setContentType(MediaType.APPLICATION_JSON);
         return headers;
+    }
+
+    private String randomEmail() {
+        return UUID.randomUUID()+"@gmail.com";
     }
 
     private User createUser(String email, String password) {

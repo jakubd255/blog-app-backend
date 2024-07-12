@@ -8,7 +8,7 @@ import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.RegisterRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.Jwt;
+import pl.jakubdudek.blogappbackend.model.dto.response.JwtDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.service.AuthenticationService;
 import pl.jakubdudek.blogappbackend.util.cookie.CookieManager;
@@ -21,15 +21,15 @@ public class AuthenticationController {
     private final CookieManager cookieManager;
 
     @PostMapping("/register")
-    public ResponseEntity<Jwt> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
-        Jwt token = authenticationService.register(request);
+    public ResponseEntity<JwtDto> register(@RequestBody RegisterRequest request, HttpServletResponse response) {
+        JwtDto token = authenticationService.register(request);
         cookieManager.addCookie(response, token.token());
         return ResponseEntity.ok(token);
     }
 
     @PostMapping("/log-in")
-    public ResponseEntity<Jwt> logIn(@RequestBody LoginRequest request, HttpServletResponse response) {
-        Jwt token = authenticationService.logIn(request);
+    public ResponseEntity<JwtDto> logIn(@RequestBody LoginRequest request, HttpServletResponse response) {
+        JwtDto token = authenticationService.logIn(request);
         cookieManager.addCookie(response, token.token());
         return ResponseEntity.ok(token);
     }
@@ -46,8 +46,8 @@ public class AuthenticationController {
     }
 
     @PutMapping("/email")
-    public ResponseEntity<Jwt> updateEmail(@RequestBody EmailUpdateRequest request, HttpServletResponse response) {
-        Jwt token = authenticationService.updateEmail(request);
+    public ResponseEntity<JwtDto> updateEmail(@RequestBody EmailUpdateRequest request, HttpServletResponse response) {
+        JwtDto token = authenticationService.updateEmail(request);
         cookieManager.addCookie(response, token.token());
         return ResponseEntity.ok(token);
     }

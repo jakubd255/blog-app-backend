@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pl.jakubdudek.blogappbackend.model.dto.response.UserSummary;
+import pl.jakubdudek.blogappbackend.model.dto.response.IUserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 
@@ -16,7 +16,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
 
     @Query("SELECT u FROM User u")
-    List<UserSummary> getUsers();
+    List<IUserDto> getUsers();
 
     @Modifying
     @Query("UPDATE User u SET u.role = COALESCE(:role, u.role) WHERE u.id = :id")

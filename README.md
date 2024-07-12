@@ -1,5 +1,6 @@
 # BlogAppBackend
-Backend for personal blog app, written in Spring Boot. Currently in development.
+Backend for blog app, written in Spring Boot. 
+This application provides functionalities for user authentication, profile management, and content creation.
 
 
 ## Tech Stack
@@ -10,7 +11,56 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 - Hibernate
 
 
+## User roles
+#### User
+- Standard role
+- Profile management, password and email updates
+- Access to published posts
+#### Redactor
+- Has permissions to manage the blog content
+- Adding new posts
+- Editing and deleting own posts
+- Access to own drafts
+- All permissions of a User
+
+#### Admin
+- Has full access to all functions
+- Edit and delete all users and posts
+- Access to all drafts
+- All permissions of a Redactor
+
+
+## Entities
+![](./screenshots/entities.png)  
+### User
+- id (Integer): Unique identifier for the user
+- name (String): User's name
+- email (String): User's email address
+- password (String): User's hashed password
+- profileImage (String): profile image's name
+- bio (String): Short biography or description of the user
+- role (String): User's role (ROLE_USER, ROLE_REDACTOR, ROLE_ADMIN)
+
+### Post
+- id (Integer): Unique identifier for the post
+- title (String): Title of the post
+- body (String): Content of the post
+- status (String): Status of the post (DRAFT, PUBLISHED)
+- user (User): Author of the post - reference to the User entity
+- date (Date): Date when the post was created or updated to PUBLISHED from DRAFT
+
+
+
 ## Endpoints
+### POST: /api/auth/register
+```json
+{
+  "name": "Example Name",
+  "email": "example@gmail.com",
+  "password": "12345678"
+}
+```
+
 ### POST: /api/auth/log-in
 ```json
 {
@@ -44,6 +94,8 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 ```
 - Requires authentication
 
+
+
 ### GET: /api/users/:id
 - Get chosen user by id
 
@@ -53,24 +105,38 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 ### PUT: /api/users/:id
 ```json
 {
-  "name": "New Username"
+  "name": "New Username",
+  "bio": "New bio"
 }
 ```
+- Update user information.
 - Requires authentication
 - User can edit only own
 - Admin can edit any
 
+### PUT: /api/users/:id/role
+- Change user's role
+- Requires authentication
+- Only admin can edit
+
 ### PUT: /api/users/:id/profile-image
-- multipart/form-data, *image* key
+- `multipart/form-data`, `image` key
 - Edit chosen user's profile image
 - Requires authentication
 - User can edit only own
 - Admin can edit any
 
-### DELETE: /api/users/:id/delete-user
+### DELETE: /api/users/:id
 - Requires authentication
 - User can delete only his own account
 - Admin can delete any account
+
+### DELETE: /api/users/:id/profile-image
+- Delete user's profile image
+- User can delete only his own
+- Admin can delete any
+
+
 
 ### POST: /api/posts
 ```json
@@ -81,6 +147,7 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 }
 ```
 - Requires authentication
+- Admin or redactor can add
 
 ### GET: /api/posts
 - Get all published posts
@@ -92,6 +159,15 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 
 ### GET: /api/posts/:id
 - Get chosen post by id
+- If it's draft, only admin or author can get
+
+### GET: /api/posts/user/:id
+- Get chosen user's published posts
+
+### GET: /api/posts/user/:id/all
+- Get chosen user's all posts
+- Requires authentication
+- Only admin or author can get
 
 ### PUT: /api/posts/:id
 ```json
@@ -108,6 +184,8 @@ Backend for personal blog app, written in Spring Boot. Currently in development.
 - Delete chosen post by id
 - Requires authentication
 - Only author or admin can delete
+
+
 
 ### GET: /api/files/download/:name
 - Download chosen file by its name
