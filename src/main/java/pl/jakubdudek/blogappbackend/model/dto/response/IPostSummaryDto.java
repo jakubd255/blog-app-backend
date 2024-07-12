@@ -4,10 +4,10 @@ import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
 
 import java.util.Date;
 
-public interface PostSummary {
+public interface IPostSummaryDto {
     Integer getId();
     String getTitle();
     Date getDate();
-    UserSummary getUser();
+    IUserDto getUser();
     PostStatus getStatus();
 }

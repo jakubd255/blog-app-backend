@@ -6,11 +6,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.jakubdudek.blogappbackend.model.dto.request.RegisterRequest;
+import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.EmailUpdateRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.Jwt;
+import pl.jakubdudek.blogappbackend.model.dto.response.JwtDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
@@ -32,7 +34,18 @@ public class AuthenticationService {
         );
     }
 
-    public Jwt logIn(LoginRequest request) {
+    public JwtDto register(RegisterRequest request) {
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(UserRole.ROLE_USER)
+                .build();
+
+        return new JwtDto(jwtGenerator.generateToken(userRepository.save(user).getEmail()));
+    }
+
+    public JwtDto logIn(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElseThrow(
                 () -> new BadCredentialsException("Invalid email")
         );
@@ -41,20 +54,20 @@ public class AuthenticationService {
             throw new BadCredentialsException("Invalid password");
         }
 
-        return new Jwt(jwtGenerator.generateToken(user.getUsername()));
+        return new JwtDto(jwtGenerator.generateToken(user.getEmail()));
     }
 
     public UserDto authenticate() {
         return dtoMapper.mapUserToDto(authenticationManager.getAuthenticatedUser());
     }
 
-    public Jwt updateEmail(EmailUpdateRequest request) {
+    public JwtDto updateEmail(EmailUpdateRequest request) {
         User user = authenticationManager.getAuthenticatedUser();
 
         user.setEmail(request.getEmail());
         userRepository.save(user);
 
-        return new Jwt(jwtGenerator.generateToken(user.getUsername()));
+        return new JwtDto(jwtGenerator.generateToken(user.getUsername()));
     }
 
     public void updatePassword(PasswordUpdateRequest request) {

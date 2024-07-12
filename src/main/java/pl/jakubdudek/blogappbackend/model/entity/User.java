@@ -35,6 +35,9 @@ public class User implements UserDetails {
 
     private String profileImage;
 
+    @Lob
+    private String bio;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole role;
