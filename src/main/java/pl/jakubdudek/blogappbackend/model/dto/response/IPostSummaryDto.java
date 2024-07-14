@@ -8,6 +8,6 @@ public interface IPostSummaryDto {
     Integer getId();
     String getTitle();
     Date getDate();
-    IUserDto getUser();
+    IUserSummaryDto getUser();
     PostStatus getStatus();
 }

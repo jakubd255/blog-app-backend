@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.request.UserUpdateRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.IUserDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.IUserSummaryDto;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
@@ -32,8 +32,8 @@ public class UserService {
         return dtoMapper.mapUserToDto(findUserById(id));
     }
 
-    public List<IUserDto> getAllUsers() {
-        return userRepository.getUsers();
+    public List<UserDto> getAllUsers() {
+        return userRepository.findAll().stream().map(dtoMapper::mapUserToDto).toList();
     }
 
     public UserDto editUser(Integer id, UserUpdateRequest request) {

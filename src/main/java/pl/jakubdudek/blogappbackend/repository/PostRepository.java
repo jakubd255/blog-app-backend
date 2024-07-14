@@ -11,15 +11,34 @@ import java.util.List;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer> {
-    @Query("SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user FROM Post p WHERE status = 'PUBLISHED'")
+    @Query("""
+    SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user
+    FROM Post p
+    WHERE p.status = 'PUBLISHED'
+    ORDER BY p.date DESC
+    """)
     List<IPostSummaryDto> findPublishedPostSummaries();
 
-    @Query("SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user FROM Post p")
+    @Query("""
+    SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user
+    FROM Post p
+    ORDER BY p.date DESC
+    """)
     List<IPostSummaryDto> findPostSummaries();
 
-    @Query("SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user FROM Post p WHERE user.id = :id AND status = 'PUBLISHED'")
+    @Query("""
+    SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user
+    FROM Post p
+    WHERE user.id = :id AND status = 'PUBLISHED'
+    ORDER BY p.date DESC
+    """)
     List<IPostSummaryDto> findPublishedPostSummariesByUserId(@Param("id") Integer id);
 
-    @Query("SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user FROM Post p WHERE user.id = :id")
+    @Query("""
+    SELECT p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user
+    FROM Post p
+    WHERE user.id = :id
+    ORDER BY p.date DESC
+    """)
     List<IPostSummaryDto> findPostSummariesByUserId(@Param("id") Integer id);
 }

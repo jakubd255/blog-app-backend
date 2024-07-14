@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.model.dto.request.UserUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.IUserDto;
-import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
 import pl.jakubdudek.blogappbackend.service.UserService;
 
@@ -27,7 +25,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<List<IUserDto>> getAllUsers() {
+    public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
