@@ -9,7 +9,7 @@ import pl.jakubdudek.blogappbackend.model.dto.response.CommentDto;
 import pl.jakubdudek.blogappbackend.model.entity.Comment;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 import pl.jakubdudek.blogappbackend.repository.CommentRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;

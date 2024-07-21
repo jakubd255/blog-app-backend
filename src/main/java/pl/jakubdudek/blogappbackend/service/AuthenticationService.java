@@ -7,7 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.model.dto.request.RegisterRequest;
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.LoginRequest;
 import pl.jakubdudek.blogappbackend.model.dto.request.PasswordUpdateRequest;

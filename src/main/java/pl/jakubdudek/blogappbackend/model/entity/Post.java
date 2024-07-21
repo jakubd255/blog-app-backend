@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
+import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
 
 import java.util.Date;
 

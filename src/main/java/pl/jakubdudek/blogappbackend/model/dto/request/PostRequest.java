@@ -3,7 +3,7 @@ package pl.jakubdudek.blogappbackend.model.dto.request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
+import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
 
 @Data
 @AllArgsConstructor

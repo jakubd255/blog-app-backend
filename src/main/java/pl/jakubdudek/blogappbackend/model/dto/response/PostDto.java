@@ -1,6 +1,6 @@
 package pl.jakubdudek.blogappbackend.model.dto.response;
 
-import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
+import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
 
 import java.util.Date;
 

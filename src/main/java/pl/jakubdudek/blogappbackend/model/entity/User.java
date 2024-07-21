@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 
 import java.util.Collection;
 import java.util.List;

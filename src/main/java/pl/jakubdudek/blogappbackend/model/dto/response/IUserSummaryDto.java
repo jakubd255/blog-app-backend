@@ -1,6 +1,6 @@
 package pl.jakubdudek.blogappbackend.model.dto.response;
 
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 
 public interface IUserSummaryDto {
     Integer getId();

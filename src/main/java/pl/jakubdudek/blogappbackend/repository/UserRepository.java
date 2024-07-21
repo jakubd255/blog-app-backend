@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 
 import java.util.Optional;
 

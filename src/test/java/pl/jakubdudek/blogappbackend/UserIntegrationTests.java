@@ -13,7 +13,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.jakubdudek.blogappbackend.model.dto.request.UserUpdateRequest;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
 import pl.jakubdudek.blogappbackend.service.UserService;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
