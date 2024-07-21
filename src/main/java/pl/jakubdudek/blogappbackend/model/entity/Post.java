@@ -44,6 +44,9 @@ public class Post {
     )
     private List<User> likes;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<Comment> comments;
+
     @Column(nullable = false)
     private Date date;
 

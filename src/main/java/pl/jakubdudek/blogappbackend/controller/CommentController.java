@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.CommentRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.CommentDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.ICommentDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.service.CommentService;
 
@@ -27,12 +28,12 @@ public class CommentController {
     }
 
     @GetMapping("/post/{id}")
-    public ResponseEntity<List<CommentDto>> getPostComments(@PathVariable Integer id) {
+    public ResponseEntity<List<ICommentDto>> getPostComments(@PathVariable Integer id) {
         return ResponseEntity.ok(commentService.getPostComments(id));
     }
 
     @GetMapping("/parent/{id}")
-    public ResponseEntity<List<CommentDto>> getCommentReplies(@PathVariable Integer id) {
+    public ResponseEntity<List<ICommentDto>> getCommentReplies(@PathVariable Integer id) {
         return ResponseEntity.ok(commentService.getCommentReplies(id));
     }
 

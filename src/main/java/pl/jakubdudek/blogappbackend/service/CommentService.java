@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.request.CommentRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.CommentDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.ICommentDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.Comment;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
@@ -49,20 +50,12 @@ public class CommentService {
         return dtoMapper.mapCommentToDto(commentRepository.save(reply));
     }
 
-    public List<CommentDto> getPostComments(Integer id) {
-        return commentRepository
-                .findCommentsByPostId(id)
-                .stream()
-                .map(dtoMapper::mapCommentToDto)
-                .toList();
+    public List<ICommentDto> getPostComments(Integer id) {
+        return commentRepository.findComments(id, null, true);
     }
 
-    public List<CommentDto> getCommentReplies(Integer id) {
-        return commentRepository
-                .findRepliesByParentId(id)
-                .stream()
-                .map(dtoMapper::mapCommentToDto)
-                .toList();
+    public List<ICommentDto> getCommentReplies(Integer id) {
+        return commentRepository.findComments(null, id, false);
     }
 
     public List<UserDto> getLikes(Integer id) {

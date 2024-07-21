@@ -6,8 +6,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.service.PostService;
@@ -49,7 +50,7 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PostDto> getPost(@PathVariable Integer id) {
+    public ResponseEntity<IPostDto> getPost(@PathVariable Integer id) {
         return ResponseEntity.ok(postService.getPost(id));
     }
 

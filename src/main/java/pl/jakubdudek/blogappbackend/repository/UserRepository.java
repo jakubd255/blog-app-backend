@@ -15,5 +15,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     @Modifying
     @Query("UPDATE User u SET u.role = COALESCE(:role, u.role) WHERE u.id = :id")
-    int updateUserRole(@Param("id") Integer id, @Param("role") UserRole role);
+    int updateUserRole(
+            @Param("id") Integer id,
+            @Param("role") UserRole role
+    );
 }

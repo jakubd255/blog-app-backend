@@ -2,7 +2,7 @@ package pl.jakubdudek.blogappbackend.model.dto.response;
 
 import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 
-public interface IUserSummaryDto {
+public interface IUserDto {
     Integer getId();
     String getName();
     String getEmail();

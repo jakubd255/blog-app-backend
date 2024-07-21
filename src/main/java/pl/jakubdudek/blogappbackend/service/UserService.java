@@ -37,7 +37,7 @@ public class UserService {
 
     public UserDto editUser(Integer id, UserUpdateRequest request) {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         user.setName(Optional.of(request.getName()).orElse(user.getName()));
         user.setBio(request.getBio());
@@ -55,7 +55,7 @@ public class UserService {
 
     public String updateProfileImage(Integer id, MultipartFile file) throws IOException {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         if(StringUtils.isEmpty(user.getProfileImage())) {
             fileService.deleteFile(user.getProfileImage());
@@ -69,7 +69,7 @@ public class UserService {
 
     public void removeUserProfileImage(Integer id) throws IOException {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         fileService.deleteFile(user.getProfileImage());
         user.setProfileImage(null);
@@ -78,7 +78,7 @@ public class UserService {
 
     public void deleteUser(Integer id) throws IOException {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         userRepository.deleteById(id);
 
@@ -92,10 +92,10 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
-    private void requirePermissionToUser(User user) {
+    private void requirePermissionToUser(Integer userId) {
         User authUser = authenticationManager.getAuthenticatedUser();
 
-        if(authUser == null || !(authUser.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authUser.getId()))) {
+        if(authUser == null || !(authUser.getRole() == UserRole.ROLE_ADMIN || authUser.getId().equals(userId))) {
             throw new ForbiddenException("You don't have permission to this user");
         }
     }

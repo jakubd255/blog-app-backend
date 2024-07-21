@@ -5,11 +5,12 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
+import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
@@ -39,12 +40,14 @@ public class PostService {
         ));
     }
 
-    public PostDto getPost(Integer id) {
-        Post post = findPostById(id);
+    public IPostDto getPost(Integer id) {
+        IPostDto post = postRepository.findPostById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+
         if(post.getStatus().equals(PostStatus.DRAFT)) {
-            requirePermissionToPost(post);
+            requirePermissionToPost(post.getUser().getId());
         }
-        return dtoMapper.mapPostToDto(post);
+        return post;
     }
 
     public List<IPostSummaryDto> getAllPublishedPosts() {
@@ -65,7 +68,7 @@ public class PostService {
 
     public PostDto editPost(Integer id, Post newPost) {
         Post post = findPostById(id);
-        requirePermissionToPost(post);
+        requirePermissionToPost(post.getUser().getId());
 
         post.setTitle(Optional.of(newPost.getTitle()).orElse(post.getTitle()));
         post.setBody(Optional.of(newPost.getBody()).orElse(post.getBody()));
@@ -100,7 +103,7 @@ public class PostService {
 
     public void deletePost(Integer id) {
         Post post = findPostById(id);
-        requirePermissionToPost(post);
+        requirePermissionToPost(post.getUser().getId());
 
         postRepository.deleteById(id);
     }
@@ -110,10 +113,10 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
     }
 
-    private void requirePermissionToPost(Post post) {
+    private void requirePermissionToPost(Integer authorId) {
         User user = authenticationManager.getAuthenticatedUser();
 
-        if(user == null || !(user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(post.getUser().getId()))) {
+        if(user == null || !(user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authorId))) {
             throw new ForbiddenException("You don't have permission to this post");
         }
     }
