@@ -61,8 +61,8 @@ public class PostController {
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
     @PutMapping("/{id}")
-    public ResponseEntity<PostDto> editPost(@PathVariable Integer id, @RequestBody Post post) {
-        return ResponseEntity.ok(postService.editPost(id, post));
+    public ResponseEntity<PostDto> editPost(@PathVariable Integer id, @RequestBody PostRequest request) {
+        return ResponseEntity.ok(postService.editPost(id, request));
     }
 
     @PutMapping("/{id}/like")

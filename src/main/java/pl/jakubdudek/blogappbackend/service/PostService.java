@@ -53,17 +53,17 @@ public class PostService {
         return postRepository.findPostSummaries(status, userId, authenticationManager.getAuthenticatedUserId());
     }
 
-    public PostDto editPost(Integer id, Post newPost) {
+    public PostDto editPost(Integer id, PostRequest request) {
         Post post = findPostById(id);
         requirePermissionToPost(post.getUser().getId());
 
-        post.setTitle(Optional.of(newPost.getTitle()).orElse(post.getTitle()));
-        post.setBody(Optional.of(newPost.getBody()).orElse(post.getBody()));
+        post.setTitle(Optional.of(request.getTitle()).orElse(post.getTitle()));
+        post.setBody(Optional.of(request.getBody()).orElse(post.getBody()));
 
-        if(newPost.getStatus() == PostStatus.PUBLISHED && post.getStatus() == PostStatus.DRAFT) {
+        if(request.getStatus() == PostStatus.PUBLISHED && post.getStatus() == PostStatus.DRAFT) {
             post.setDate(new Date());
         }
-        post.setStatus(Optional.of(newPost.getStatus()).orElse(post.getStatus()));
+        post.setStatus(Optional.of(request.getStatus()).orElse(post.getStatus()));
 
         return dtoMapper.mapPostToDto(postRepository.save(post));
     }
