@@ -9,7 +9,6 @@ import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
-import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
 import pl.jakubdudek.blogappbackend.service.PostService;
 

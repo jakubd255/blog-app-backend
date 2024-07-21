@@ -1,6 +1,7 @@
 package pl.jakubdudek.blogappbackend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.CommentRequest;
@@ -19,12 +20,12 @@ public class CommentController {
 
     @PostMapping("/post/{id}")
     public ResponseEntity<CommentDto> addPostComment(@PathVariable Integer id, @RequestBody CommentRequest request) {
-        return ResponseEntity.ok(commentService.addPostComment(id, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.addPostComment(id, request));
     }
 
     @PostMapping("/parent/{id}")
     public ResponseEntity<CommentDto> addCommentReply(@PathVariable Integer id, @RequestBody CommentRequest request) {
-        return ResponseEntity.ok(commentService.addCommentReply(id, request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.addCommentReply(id, request));
     }
 
     @GetMapping("/post/{id}")
