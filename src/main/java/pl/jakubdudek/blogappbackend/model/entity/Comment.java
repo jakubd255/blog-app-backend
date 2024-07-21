@@ -40,6 +40,14 @@ public class Comment {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "comment_likes",
+            joinColumns = @JoinColumn(name = "comment_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> likes;
+
     @Column(nullable = false)
     private Date date;
 

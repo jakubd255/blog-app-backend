@@ -1,11 +1,13 @@
 package pl.jakubdudek.blogappbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.request.CommentRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.CommentDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.Comment;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
@@ -63,6 +65,13 @@ public class CommentService {
                 .toList();
     }
 
+    public List<UserDto> getLikes(Integer id) {
+        return commentRepository.findUsersWhoLikedComment(id)
+                .stream()
+                .map(dtoMapper::mapUserToDto)
+                .toList();
+    }
+
     public CommentDto updateComment(Integer id, CommentRequest request) {
         Comment comment = findCommentById(id);
         requirePermissionToComment(comment);
@@ -70,6 +79,19 @@ public class CommentService {
         comment.setText(Optional.of(request.getText()).orElse(comment.getText()));
 
         return dtoMapper.mapCommentToDto(commentRepository.save(comment));
+    }
+
+    @Transactional
+    public String likeComment(Integer id) {
+        User user = authenticationManager.getAuthenticatedUser();
+        if(commentRepository.isCommentLikedByUser(id, user.getId()) == 0) {
+            commentRepository.likeComment(id, user.getId());
+            return "Successfully liked comment: "+id;
+        }
+        else {
+            commentRepository.unlikeComment(id, user.getId());
+            return "Successfully unliked comment: "+id;
+        }
     }
 
     public void deleteComment(Integer id) {

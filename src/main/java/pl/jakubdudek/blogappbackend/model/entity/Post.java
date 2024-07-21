@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "posts")
@@ -34,6 +35,14 @@ public class Post {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "post_likes",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> likes;
 
     @Column(nullable = false)
     private Date date;

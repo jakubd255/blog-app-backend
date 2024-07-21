@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.service.PostService;
 
@@ -52,10 +53,20 @@ public class PostController {
         return ResponseEntity.ok(postService.getPost(id));
     }
 
+    @GetMapping("/{id}/likes")
+    public ResponseEntity<List<UserDto>> getLikes(@PathVariable Integer id) {
+        return ResponseEntity.ok(postService.getLikes(id));
+    }
+
     @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
     @PutMapping("/{id}")
     public ResponseEntity<PostDto> editPost(@PathVariable Integer id, @RequestBody Post post) {
         return ResponseEntity.ok(postService.editPost(id, post));
+    }
+
+    @PutMapping("/{id}/like")
+    public ResponseEntity<String> likePost(@PathVariable Integer id) {
+        return ResponseEntity.ok(postService.likePost(id));
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")

@@ -1,9 +1,11 @@
 package pl.jakubdudek.blogappbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
@@ -74,6 +76,26 @@ public class PostService {
         post.setStatus(Optional.of(newPost.getStatus()).orElse(post.getStatus()));
 
         return dtoMapper.mapPostToDto(postRepository.save(post));
+    }
+
+    public List<UserDto> getLikes(Integer id) {
+        return postRepository.findUsersWhoLikedPost(id)
+                .stream()
+                .map(dtoMapper::mapUserToDto)
+                .toList();
+    }
+
+    @Transactional
+    public String likePost(Integer id) {
+        User user = authenticationManager.getAuthenticatedUser();
+        if(postRepository.isPostLikedByUser(id, user.getId()) == 0) {
+            postRepository.likePost(id, user.getId());
+            return "Successfully liked post: "+id;
+        }
+        else {
+            postRepository.unlikePost(id, user.getId());
+            return "Successfully unliked post: "+id;
+        }
     }
 
     public void deletePost(Integer id) {

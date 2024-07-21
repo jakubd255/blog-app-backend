@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.CommentRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.CommentDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.service.CommentService;
 
 import java.util.List;
@@ -35,9 +36,19 @@ public class CommentController {
         return ResponseEntity.ok(commentService.getCommentReplies(id));
     }
 
+    @GetMapping("/{id}/likes")
+    public ResponseEntity<List<UserDto>> getLikes(@PathVariable Integer id) {
+        return ResponseEntity.ok(commentService.getLikes(id));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<CommentDto> updateComment(@PathVariable Integer id, @RequestBody CommentRequest request) {
         return ResponseEntity.ok(commentService.updateComment(id, request));
+    }
+
+    @PutMapping("/{id}/like")
+    public ResponseEntity<String> likeComment(@PathVariable Integer id) {
+        return ResponseEntity.ok(commentService.likeComment(id));
     }
 
     @DeleteMapping("/{id}")
