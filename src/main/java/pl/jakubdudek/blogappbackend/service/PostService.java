@@ -40,7 +40,7 @@ public class PostService {
     }
 
     public IPostDto getPost(Integer id) {
-        IPostDto post = postRepository.findPostById(id)
+        IPostDto post = postRepository.findPostById(id, authenticationManager.getAuthenticatedUserId())
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
 
         if(post.getStatus().equals(PostStatus.DRAFT)) {
@@ -49,20 +49,8 @@ public class PostService {
         return post;
     }
 
-    public List<IPostDto> getAllPublishedPosts() {
-        return postRepository.findPostSummaries(PostStatus.PUBLISHED, null);
-    }
-
-    public List<IPostDto> getAllPosts() {
-        return postRepository.findPostSummaries(null, null);
-    }
-
-    public List<IPostDto> getAllPublishedPostsByUserId(Integer id) {
-        return postRepository.findPostSummaries(PostStatus.PUBLISHED, id);
-    }
-
-    public List<IPostDto> getAllPostsByUserId(Integer id) {
-        return postRepository.findPostSummaries(null, id);
+    public List<IPostDto> getPosts(PostStatus status, Integer userId) {
+        return postRepository.findPostSummaries(status, userId, authenticationManager.getAuthenticatedUserId());
     }
 
     public PostDto editPost(Integer id, Post newPost) {

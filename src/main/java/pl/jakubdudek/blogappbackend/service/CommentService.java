@@ -51,11 +51,11 @@ public class CommentService {
     }
 
     public List<ICommentDto> getPostComments(Integer id) {
-        return commentRepository.findComments(id, null, true);
+        return commentRepository.findComments(id, null, true, authenticationManager.getAuthenticatedUserId());
     }
 
     public List<ICommentDto> getCommentReplies(Integer id) {
-        return commentRepository.findComments(null, id, false);
+        return commentRepository.findComments(null, id, false, authenticationManager.getAuthenticatedUserId());
     }
 
     public List<UserDto> getLikes(Integer id) {

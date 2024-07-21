@@ -19,7 +19,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     SELECT
         p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user, p.body as body,
         COUNT(DISTINCT l.id) AS likes,
-        COUNT(DISTINCT c.id) as comments
+        COUNT(DISTINCT c.id) as comments,
+        (SUM(CASE WHEN l.id = :authUserId THEN 1 ELSE 0 END) > 0) AS isLiked
     FROM Post p
     LEFT JOIN p.likes l
     LEFT JOIN p.comments c ON c.parent IS NULL
@@ -27,13 +28,17 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     GROUP BY p.id
     ORDER BY p.date DESC
     """)
-    Optional<IPostDto> findPostById(@Param("id") Integer id);
+    Optional<IPostDto> findPostById(
+            @Param("id") Integer id,
+            @Param("authUserId") Integer authUserId
+    );
 
     @Query("""
     SELECT
         p.id AS id, p.title AS title, p.date AS date, p.status AS status, p.user AS user,
         COUNT(DISTINCT l.id) AS likes,
-        COUNT(DISTINCT c.id) as comments
+        COUNT(DISTINCT c.id) as comments,
+        (SUM(CASE WHEN l.id = :authUserId THEN 1 ELSE 0 END) > 0) AS isLiked
     FROM Post p
     LEFT JOIN p.likes l
     LEFT JOIN p.comments c ON c.parent IS NULL
@@ -43,7 +48,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     """)
     List<IPostDto> findPostSummaries(
             @Param("status") PostStatus status,
-            @Param("userId") Integer userId
+            @Param("userId") Integer userId,
+            @Param("authUserId") Integer authUserId
     );
 
     @Query(value = "SELECT COUNT(*) FROM post_likes WHERE post_id = :postId AND user_id = :userId", nativeQuery = true)

@@ -16,7 +16,8 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     @Query("""
     SELECT c.id AS id, c.text AS text, c.user AS user, c.date AS date, c.post.id AS postId, c.parent.id AS parentId,
         COUNT(DISTINCT l.id) AS likes,
-        COUNT(DISTINCT r.id) as replies
+        COUNT(DISTINCT r.id) as replies,
+        (SUM(CASE WHEN l.id = :authUserId THEN 1 ELSE 0 END) > 0) AS isLiked
     FROM Comment c
     LEFT JOIN c.likes l
     LEFT JOIN c.replies r
@@ -26,7 +27,8 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     List<ICommentDto> findComments(
             @Param("postId") Integer postId,
             @Param("parentId") Integer parentId,
-            @Param("rootComments") Boolean rootComments
+            @Param("rootComments") Boolean rootComments,
+            @Param("authUserId") Integer authUserId
     );
 
     @Query(value = "SELECT COUNT(*) FROM comment_likes WHERE comment_id = :commentId AND user_id = :userId", nativeQuery = true)

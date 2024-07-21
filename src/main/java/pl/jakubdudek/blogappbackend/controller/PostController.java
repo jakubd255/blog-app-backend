@@ -10,6 +10,7 @@ import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
+import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
 import pl.jakubdudek.blogappbackend.service.PostService;
 
 import java.util.List;
@@ -28,24 +29,24 @@ public class PostController {
 
     @GetMapping
     public ResponseEntity<List<IPostDto>> getAllPublishedPosts() {
-        return ResponseEntity.ok(postService.getAllPublishedPosts());
+        return ResponseEntity.ok(postService.getPosts(PostStatus.PUBLISHED, null));
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<IPostDto>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
+        return ResponseEntity.ok(postService.getPosts(null, null));
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
     @GetMapping("/user/{id}/all")
     public ResponseEntity<List<IPostDto>> getAllPostsByUserId(@PathVariable Integer id) {
-        return ResponseEntity.ok(postService.getAllPostsByUserId(id));
+        return ResponseEntity.ok(postService.getPosts(null, id));
     }
 
     @GetMapping("/user/{id}")
     public ResponseEntity<List<IPostDto>> getAllPublishedPostsByUserId(@PathVariable Integer id) {
-        return ResponseEntity.ok(postService.getAllPublishedPostsByUserId(id));
+        return ResponseEntity.ok(postService.getPosts(PostStatus.PUBLISHED, id));
     }
 
     @GetMapping("/{id}")

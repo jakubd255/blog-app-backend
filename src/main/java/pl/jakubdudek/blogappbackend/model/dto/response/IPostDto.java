@@ -13,4 +13,5 @@ public interface IPostDto {
     PostStatus getStatus();
     Long getLikes();
     Long getComments();
+    Boolean getIsLiked();
 }

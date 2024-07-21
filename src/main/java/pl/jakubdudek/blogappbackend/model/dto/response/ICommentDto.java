@@ -11,4 +11,5 @@ public interface ICommentDto {
     Integer getParentId();
     Long getLikes();
     Long getReplies();
+    Boolean getIsLiked();
 }
