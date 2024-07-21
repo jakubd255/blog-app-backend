@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts/{id}", "/api/posts").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/{id}", "/api/users").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/files/download/{name}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/comments/post/{id}", "/api/comments/parent/{id}").permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())

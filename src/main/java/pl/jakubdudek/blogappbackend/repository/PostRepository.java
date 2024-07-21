@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
@@ -42,7 +41,7 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     GROUP BY p.id
     ORDER BY p.date DESC
     """)
-    List<IPostSummaryDto> findPostSummaries(
+    List<IPostDto> findPostSummaries(
             @Param("status") PostStatus status,
             @Param("userId") Integer userId
     );

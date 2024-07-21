@@ -7,7 +7,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
@@ -28,24 +27,24 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<List<IPostSummaryDto>> getAllPublishedPosts() {
+    public ResponseEntity<List<IPostDto>> getAllPublishedPosts() {
         return ResponseEntity.ok(postService.getAllPublishedPosts());
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<IPostSummaryDto>> getAllPosts() {
+    public ResponseEntity<List<IPostDto>> getAllPosts() {
         return ResponseEntity.ok(postService.getAllPosts());
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('REDACTOR')")
     @GetMapping("/user/{id}/all")
-    public ResponseEntity<List<IPostSummaryDto>> getAllPostsByUserId(@PathVariable Integer id) {
+    public ResponseEntity<List<IPostDto>> getAllPostsByUserId(@PathVariable Integer id) {
         return ResponseEntity.ok(postService.getAllPostsByUserId(id));
     }
 
     @GetMapping("/user/{id}")
-    public ResponseEntity<List<IPostSummaryDto>> getAllPublishedPostsByUserId(@PathVariable Integer id) {
+    public ResponseEntity<List<IPostDto>> getAllPublishedPostsByUserId(@PathVariable Integer id) {
         return ResponseEntity.ok(postService.getAllPublishedPostsByUserId(id));
     }
 

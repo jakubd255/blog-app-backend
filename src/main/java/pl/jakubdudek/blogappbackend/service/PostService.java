@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
@@ -50,19 +49,19 @@ public class PostService {
         return post;
     }
 
-    public List<IPostSummaryDto> getAllPublishedPosts() {
+    public List<IPostDto> getAllPublishedPosts() {
         return postRepository.findPostSummaries(PostStatus.PUBLISHED, null);
     }
 
-    public List<IPostSummaryDto> getAllPosts() {
+    public List<IPostDto> getAllPosts() {
         return postRepository.findPostSummaries(null, null);
     }
 
-    public List<IPostSummaryDto> getAllPublishedPostsByUserId(Integer id) {
+    public List<IPostDto> getAllPublishedPostsByUserId(Integer id) {
         return postRepository.findPostSummaries(PostStatus.PUBLISHED, id);
     }
 
-    public List<IPostSummaryDto> getAllPostsByUserId(Integer id) {
+    public List<IPostDto> getAllPostsByUserId(Integer id) {
         return postRepository.findPostSummaries(null, id);
     }
 
