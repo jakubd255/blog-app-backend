@@ -1,5 +1,7 @@
 package pl.jakubdudek.blogappbackend.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +12,6 @@ import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -26,7 +27,6 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     LEFT JOIN p.comments c ON c.parent IS NULL
     WHERE p.id = :id
     GROUP BY p.id
-    ORDER BY p.date DESC
     """)
     Optional<IPostDto> findPostById(
             @Param("id") Integer id,
@@ -46,10 +46,11 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     GROUP BY p.id
     ORDER BY p.date DESC
     """)
-    List<IPostDto> findPostSummaries(
+    Page<IPostDto> findPostSummaries(
             @Param("status") PostStatus status,
             @Param("userId") Integer userId,
-            @Param("authUserId") Integer authUserId
+            @Param("authUserId") Integer authUserId,
+            Pageable pageable
     );
 
     @Query(value = "SELECT COUNT(*) FROM post_likes WHERE post_id = :postId AND user_id = :userId", nativeQuery = true)
@@ -73,5 +74,8 @@ public interface PostRepository extends JpaRepository<Post, Integer> {
     );
 
     @Query("SELECT p.likes FROM Post p WHERE p.id = :id")
-    List<User> findUsersWhoLikedPost(@Param("id") Integer id);
+    Page<User> findUsersWhoLikedPost(
+            @Param("id") Integer id,
+            Pageable pageable
+    );
 }

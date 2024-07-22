@@ -28,7 +28,7 @@ public class JwtAuthenticationManager {
             return getAuthenticatedUser().getId();
         }
         else {
-            return null;
+            return -1;
         }
     }
 }

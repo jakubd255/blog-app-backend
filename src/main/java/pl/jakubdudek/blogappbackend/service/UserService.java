@@ -4,6 +4,8 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
@@ -16,7 +18,6 @@ import pl.jakubdudek.blogappbackend.repository.UserRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -31,8 +32,8 @@ public class UserService {
         return dtoMapper.mapUserToDto(findUserById(id));
     }
 
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map(dtoMapper::mapUserToDto).toList();
+    public Page<UserDto> getAllUsers(Pageable pageable) {
+        return dtoMapper.mapUsersToDto(userRepository.findAll(pageable));
     }
 
     public UserDto editUser(Integer id, UserUpdateRequest request) {

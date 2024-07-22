@@ -1,5 +1,7 @@
 package pl.jakubdudek.blogappbackend.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -8,8 +10,6 @@ import org.springframework.stereotype.Repository;
 import pl.jakubdudek.blogappbackend.model.dto.response.ICommentDto;
 import pl.jakubdudek.blogappbackend.model.entity.Comment;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-
-import java.util.List;
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Integer> {
@@ -23,12 +23,14 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     LEFT JOIN c.replies r
     WHERE (:rootComments = FALSE OR c.parent IS NULL) AND (c.post.id = :postId OR c.parent.id = :parentId)
     GROUP BY c.id
+    ORDER BY c.date DESC
     """)
-    List<ICommentDto> findComments(
+    Page<ICommentDto> findComments(
             @Param("postId") Integer postId,
             @Param("parentId") Integer parentId,
             @Param("rootComments") Boolean rootComments,
-            @Param("authUserId") Integer authUserId
+            @Param("authUserId") Integer authUserId,
+            Pageable pageable
     );
 
     @Query(value = "SELECT COUNT(*) FROM comment_likes WHERE comment_id = :commentId AND user_id = :userId", nativeQuery = true)
@@ -52,5 +54,8 @@ public interface CommentRepository extends JpaRepository<Comment, Integer> {
     );
 
     @Query("SELECT c.likes FROM Comment c WHERE c.id = :id")
-    List<User> findUsersWhoLikedComment(@Param("id") Integer id);
+    Page<User> findUsersWhoLikedComment(
+            @Param("id") Integer id,
+            Pageable pageable
+    );
 }

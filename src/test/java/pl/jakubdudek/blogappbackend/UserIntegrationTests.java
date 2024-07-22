@@ -19,6 +19,7 @@ import pl.jakubdudek.blogappbackend.service.UserService;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -45,7 +46,7 @@ public class UserIntegrationTests {
 
     @Test
     public void testGetAllUsers() {
-        ResponseEntity<List> response = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 getUrl(""),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
@@ -54,7 +55,9 @@ public class UserIntegrationTests {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertNotEquals(0, response.getBody().size());
+
+        List<Map<String, Object>> users = (List<Map<String, Object>>) response.getBody().get("content");
+        assertNotEquals(0, users.size());
     }
 
     @Test

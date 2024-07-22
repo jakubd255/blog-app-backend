@@ -3,6 +3,8 @@ package pl.jakubdudek.blogappbackend.service;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.request.CommentRequest;
@@ -50,19 +52,16 @@ public class CommentService {
         return dtoMapper.mapCommentToDto(commentRepository.save(reply));
     }
 
-    public List<ICommentDto> getPostComments(Integer id) {
-        return commentRepository.findComments(id, null, true, authenticationManager.getAuthenticatedUserId());
+    public Page<ICommentDto> getPostComments(Integer id, Pageable pageable) {
+        return commentRepository.findComments(id, null, true, authenticationManager.getAuthenticatedUserId(), pageable);
     }
 
-    public List<ICommentDto> getCommentReplies(Integer id) {
-        return commentRepository.findComments(null, id, false, authenticationManager.getAuthenticatedUserId());
+    public Page<ICommentDto> getCommentReplies(Integer id, Pageable pageable) {
+        return commentRepository.findComments(null, id, false, authenticationManager.getAuthenticatedUserId(), pageable);
     }
 
-    public List<UserDto> getLikes(Integer id) {
-        return commentRepository.findUsersWhoLikedComment(id)
-                .stream()
-                .map(dtoMapper::mapUserToDto)
-                .toList();
+    public Page<UserDto> getLikes(Integer id, Pageable pageable) {
+        return dtoMapper.mapUsersToDto(commentRepository.findUsersWhoLikedComment(id, pageable));
     }
 
     public CommentDto updateComment(Integer id, CommentRequest request) {

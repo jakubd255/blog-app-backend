@@ -3,6 +3,8 @@ package pl.jakubdudek.blogappbackend.service;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
@@ -18,7 +20,6 @@ import pl.jakubdudek.blogappbackend.repository.PostRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -49,8 +50,8 @@ public class PostService {
         return post;
     }
 
-    public List<IPostDto> getPosts(PostStatus status, Integer userId) {
-        return postRepository.findPostSummaries(status, userId, authenticationManager.getAuthenticatedUserId());
+    public Page<IPostDto> getPosts(PostStatus status, Integer userId, Pageable pageable) {
+        return postRepository.findPostSummaries(status, userId, authenticationManager.getAuthenticatedUserId(), pageable);
     }
 
     public PostDto editPost(Integer id, PostRequest request) {
@@ -68,11 +69,8 @@ public class PostService {
         return dtoMapper.mapPostToDto(postRepository.save(post));
     }
 
-    public List<UserDto> getLikes(Integer id) {
-        return postRepository.findUsersWhoLikedPost(id)
-                .stream()
-                .map(dtoMapper::mapUserToDto)
-                .toList();
+    public Page<UserDto> getLikes(Integer id, Pageable pageable) {
+        return dtoMapper.mapUsersToDto(postRepository.findUsersWhoLikedPost(id, pageable));
     }
 
     @Transactional

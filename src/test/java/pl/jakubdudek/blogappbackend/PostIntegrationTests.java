@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -95,15 +96,15 @@ public class PostIntegrationTests {
         createPost(admin, PostStatus.PUBLISHED);
         createPost(admin, PostStatus.DRAFT);
 
-        ResponseEntity<List> response = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 getUrl(""),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                List.class
+                new ParameterizedTypeReference<>() {}
         );
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<Map<String, Object>> posts = response.getBody();
+        List<Map<String, Object>> posts = (List<Map<String, Object>>) response.getBody().get("content");
         for(Map<String, Object> post : posts) {
             assertEquals("PUBLISHED", post.get("status"));
         }
@@ -116,11 +117,11 @@ public class PostIntegrationTests {
         createPost(admin, PostStatus.PUBLISHED);
         createPost(admin, PostStatus.DRAFT);
 
-        ResponseEntity<List> response = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 getUrl("/all"),
                 HttpMethod.GET,
                 new HttpEntity<>(createAuthHeaders(admin.getEmail())),
-                List.class
+                new ParameterizedTypeReference<>() {}
         );
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
@@ -148,14 +149,15 @@ public class PostIntegrationTests {
 
         createPost(getAdmin(), PostStatus.DRAFT);
 
-        ResponseEntity<List> response = restTemplate.exchange(
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                 getUrl("/user/"+user.getId()+"/all"),
                 HttpMethod.GET,
                 new HttpEntity<>(createAuthHeaders(user.getEmail())),
-                List.class
+                new ParameterizedTypeReference<>() {}
         );
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(3, response.getBody().size());
+        List<Map<String, Object>> posts = (List<Map<String, Object>>) response.getBody().get("content");
+        assertEquals(3, posts.size());
     }
 
     @Test

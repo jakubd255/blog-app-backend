@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.data.domain.Page;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -25,7 +26,6 @@ import pl.jakubdudek.blogappbackend.service.CommentService;
 import pl.jakubdudek.blogappbackend.service.PostService;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtGenerator;
 
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -76,7 +76,7 @@ public class CommentIntegrationTests {
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-        List<IPostDto> posts = postService.getPosts(PostStatus.PUBLISHED, null);
+        Page<IPostDto> posts = postService.getPosts(PostStatus.PUBLISHED, null, null);
 
         posts.forEach(p -> {
             if(p.getId().equals(post.getId())) {
@@ -104,7 +104,7 @@ public class CommentIntegrationTests {
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
 
-        List<ICommentDto> comments = commentService.getCommentReplies(comment.getId());
+        Page<ICommentDto> comments = commentService.getCommentReplies(comment.getId(), null);
 
         comments.forEach(c -> {
             if(c.getId().equals(comment.getId())) {

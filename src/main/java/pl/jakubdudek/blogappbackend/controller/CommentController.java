@@ -1,6 +1,8 @@
 package pl.jakubdudek.blogappbackend.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +12,6 @@ import pl.jakubdudek.blogappbackend.model.dto.response.ICommentDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.service.CommentService;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/comments")
@@ -29,18 +30,18 @@ public class CommentController {
     }
 
     @GetMapping("/post/{id}")
-    public ResponseEntity<List<ICommentDto>> getPostComments(@PathVariable Integer id) {
-        return ResponseEntity.ok(commentService.getPostComments(id));
+    public ResponseEntity<Page<ICommentDto>> getPostComments(@PathVariable Integer id, Pageable pageable) {
+        return ResponseEntity.ok(commentService.getPostComments(id, pageable));
     }
 
     @GetMapping("/parent/{id}")
-    public ResponseEntity<List<ICommentDto>> getCommentReplies(@PathVariable Integer id) {
-        return ResponseEntity.ok(commentService.getCommentReplies(id));
+    public ResponseEntity<Page<ICommentDto>> getCommentReplies(@PathVariable Integer id, Pageable pageable) {
+        return ResponseEntity.ok(commentService.getCommentReplies(id, pageable));
     }
 
     @GetMapping("/{id}/likes")
-    public ResponseEntity<List<UserDto>> getLikes(@PathVariable Integer id) {
-        return ResponseEntity.ok(commentService.getLikes(id));
+    public ResponseEntity<Page<UserDto>> getLikes(@PathVariable Integer id, Pageable pageable) {
+        return ResponseEntity.ok(commentService.getLikes(id, pageable));
     }
 
     @PutMapping("/{id}")
