@@ -5,7 +5,11 @@ Posts can be added by redactors or admin. Users can like and comment on posts an
 
 The API supports pagination to efficiently manage large volumes of data. By default, pagination is enabled with the following parameters:
 - page: The page number (0-based index). Defaults to 0 if not specified.
-- size: The number of items per page. Defaults to 20 if not specified.
+- size: The number of items per page. Defaults to 20 if not specified.  
+
+### Entity diagram
+![](./screenshots/entity-diagram.png)  
+
 
 
 ## Tech Stack
