@@ -1,6 +1,15 @@
 # BlogAppBackend
-Backend for blog app, written in Spring Boot. 
-This application provides functionalities for user authentication, profile management, and content creation.
+Backend for blog app, written in Spring Boot.
+Application provides functionalities for user authentication, profile management, and content creation. 
+Posts can be added by redactors or admin. Users can like and comment on posts and reply to comments.
+
+The API supports pagination to efficiently manage large volumes of data. By default, pagination is enabled with the following parameters:
+- page: The page number (0-based index). Defaults to 0 if not specified.
+- size: The number of items per page. Defaults to 20 if not specified.  
+
+### Entity diagram
+![](./screenshots/entity-diagram.png)  
+
 
 
 ## Tech Stack
@@ -11,11 +20,15 @@ This application provides functionalities for user authentication, profile manag
 - Hibernate
 
 
+
 ## User roles
 #### User
 - Standard role
 - Profile management, password and email updates
 - Access to published posts
+- Adding comments
+- Liking posts and comments
+
 #### Redactor
 - Has permissions to manage the blog content
 - Adding new posts
@@ -28,25 +41,6 @@ This application provides functionalities for user authentication, profile manag
 - Edit and delete all users and posts
 - Access to all drafts
 - All permissions of a Redactor
-
-
-## Entities
-### User
-- id (Integer): Unique identifier for the user
-- name (String): User's name
-- email (String): User's email address
-- password (String): User's hashed password
-- profileImage (String): profile image's name
-- bio (String): Short biography or description of the user
-- role (String): User's role (ROLE_USER, ROLE_REDACTOR, ROLE_ADMIN)
-
-### Post
-- id (Integer): Unique identifier for the post
-- title (String): Title of the post
-- body (String): Content of the post
-- status (String): Status of the post (DRAFT, PUBLISHED)
-- user (User): Author of the post - reference to the User entity
-- date (Date): Date when the post was created or updated to PUBLISHED from DRAFT
 
 
 
@@ -168,6 +162,9 @@ This application provides functionalities for user authentication, profile manag
 - Requires authentication
 - Only admin or author can get
 
+### GET: /api/posts/:id/likes
+- Get users who liked the post
+
 ### PUT: /api/posts/:id
 ```json
 {
@@ -179,6 +176,10 @@ This application provides functionalities for user authentication, profile manag
 - Requires authentication
 - Only author or admin can update
 
+### PUT: /api/posts/:id/like
+- Like or dislike the post
+- Requires authentication
+
 ### DELETE: /api/posts/:id
 - Delete chosen post by id
 - Requires authentication
@@ -186,9 +187,52 @@ This application provides functionalities for user authentication, profile manag
 
 
 
+### POST: /api/comments/post/:id
+```json
+{
+  "text": "Comment text"
+}
+```
+- Add comment to the post
+- Requires authentication
+
+### POST: /api/comments/parent/:id
+```json
+{
+  "text": "Comment text"
+}
+```
+- Add reply to the comment
+- Requires authentication
+
+### GET: /api/comments/post/:id
+- Get comments of the post
+
+### GET: /api/comments/parent/:id
+- Get replies of the comment
+
+### GET: /api/comments/:id/likes
+- Get users who liked the comment
+
+### PUT: /api/comments/:id
+```json
+{
+  "text": "New text"
+}
+```
+- Requires authentication
+- Only post or comment author and admin can update
+
+### PUT: /api/comments/:id/like
+- Like or dislike the comment
+- Requires authentication
+
+### DELETE: /api/comments/:id
+- Delete comment by id
+- Requires authentication
+- Only post or comment author and admin can delete
+
+
+
 ### GET: /api/files/download/:name
 - Download chosen file by its name
-
-
-## Integration tests
-![](./screenshots/integration-tests.png)  

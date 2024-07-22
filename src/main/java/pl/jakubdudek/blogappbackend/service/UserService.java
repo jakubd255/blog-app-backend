@@ -4,20 +4,20 @@ import io.micrometer.common.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.request.UserUpdateRequest;
-import pl.jakubdudek.blogappbackend.model.dto.response.IUserSummaryDto;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 import pl.jakubdudek.blogappbackend.repository.UserRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -32,13 +32,13 @@ public class UserService {
         return dtoMapper.mapUserToDto(findUserById(id));
     }
 
-    public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream().map(dtoMapper::mapUserToDto).toList();
+    public Page<UserDto> getAllUsers(Pageable pageable) {
+        return dtoMapper.mapUsersToDto(userRepository.findAll(pageable));
     }
 
     public UserDto editUser(Integer id, UserUpdateRequest request) {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         user.setName(Optional.of(request.getName()).orElse(user.getName()));
         user.setBio(request.getBio());
@@ -56,7 +56,7 @@ public class UserService {
 
     public String updateProfileImage(Integer id, MultipartFile file) throws IOException {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         if(StringUtils.isEmpty(user.getProfileImage())) {
             fileService.deleteFile(user.getProfileImage());
@@ -70,7 +70,7 @@ public class UserService {
 
     public void removeUserProfileImage(Integer id) throws IOException {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         fileService.deleteFile(user.getProfileImage());
         user.setProfileImage(null);
@@ -79,7 +79,7 @@ public class UserService {
 
     public void deleteUser(Integer id) throws IOException {
         User user = findUserById(id);
-        requirePermissionToUser(user);
+        requirePermissionToUser(user.getId());
 
         userRepository.deleteById(id);
 
@@ -93,10 +93,10 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
-    private void requirePermissionToUser(User user) {
+    private void requirePermissionToUser(Integer userId) {
         User authUser = authenticationManager.getAuthenticatedUser();
 
-        if(authUser == null || !(authUser.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authUser.getId()))) {
+        if(authUser == null || !(authUser.getRole() == UserRole.ROLE_ADMIN || authUser.getId().equals(userId))) {
             throw new ForbiddenException("You don't have permission to this user");
         }
     }

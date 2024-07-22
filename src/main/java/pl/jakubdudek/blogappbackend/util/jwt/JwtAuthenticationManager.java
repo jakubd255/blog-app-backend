@@ -22,4 +22,13 @@ public class JwtAuthenticationManager {
             return !authentication.getName().equals("anonymousUser");
         }
     }
+
+    public Integer getAuthenticatedUserId() {
+        if(isUserAuthenticated()) {
+            return getAuthenticatedUser().getId();
+        }
+        else {
+            return -1;
+        }
+    }
 }

@@ -1,4 +1,4 @@
-package pl.jakubdudek.blogappbackend.model.enumerate;
+package pl.jakubdudek.blogappbackend.model.enums;
 
 import org.springframework.security.core.GrantedAuthority;
 

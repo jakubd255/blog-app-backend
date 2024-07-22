@@ -1,22 +1,25 @@
 package pl.jakubdudek.blogappbackend.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
+import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
+import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
-import pl.jakubdudek.blogappbackend.model.dto.response.IPostSummaryDto;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
-import pl.jakubdudek.blogappbackend.model.enumerate.PostStatus;
-import pl.jakubdudek.blogappbackend.model.enumerate.UserRole;
+import pl.jakubdudek.blogappbackend.model.enums.PostStatus;
+import pl.jakubdudek.blogappbackend.model.enums.UserRole;
 import pl.jakubdudek.blogappbackend.repository.PostRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -37,48 +40,55 @@ public class PostService {
         ));
     }
 
-    public PostDto getPost(Integer id) {
-        Post post = findPostById(id);
+    public IPostDto getPost(Integer id) {
+        IPostDto post = postRepository.findPostById(id, authenticationManager.getAuthenticatedUserId())
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
+
         if(post.getStatus().equals(PostStatus.DRAFT)) {
-            requirePermissionToPost(post);
+            requirePermissionToPost(post.getUser().getId());
         }
-        return dtoMapper.mapPostToDto(post);
+        return post;
     }
 
-    public List<IPostSummaryDto> getAllPublishedPosts() {
-        return postRepository.findPublishedPostSummaries();
+    public Page<IPostDto> getPosts(PostStatus status, Integer userId, Pageable pageable) {
+        return postRepository.findPostSummaries(status, userId, authenticationManager.getAuthenticatedUserId(), pageable);
     }
 
-    public List<IPostSummaryDto> getAllPosts() {
-        return postRepository.findPostSummaries();
-    }
-
-    public List<IPostSummaryDto> getAllPublishedPostsByUserId(Integer id) {
-        return postRepository.findPublishedPostSummariesByUserId(id);
-    }
-
-    public List<IPostSummaryDto> getAllPostsByUserId(Integer id) {
-        return postRepository.findPostSummariesByUserId(id);
-    }
-
-    public PostDto editPost(Integer id, Post newPost) {
+    public PostDto editPost(Integer id, PostRequest request) {
         Post post = findPostById(id);
-        requirePermissionToPost(post);
+        requirePermissionToPost(post.getUser().getId());
 
-        post.setTitle(Optional.of(newPost.getTitle()).orElse(post.getTitle()));
-        post.setBody(Optional.of(newPost.getBody()).orElse(post.getBody()));
+        post.setTitle(Optional.of(request.getTitle()).orElse(post.getTitle()));
+        post.setBody(Optional.of(request.getBody()).orElse(post.getBody()));
 
-        if(newPost.getStatus() == PostStatus.PUBLISHED && post.getStatus() == PostStatus.DRAFT) {
+        if(request.getStatus() == PostStatus.PUBLISHED && post.getStatus() == PostStatus.DRAFT) {
             post.setDate(new Date());
         }
-        post.setStatus(Optional.of(newPost.getStatus()).orElse(post.getStatus()));
+        post.setStatus(Optional.of(request.getStatus()).orElse(post.getStatus()));
 
         return dtoMapper.mapPostToDto(postRepository.save(post));
     }
 
+    public Page<UserDto> getLikes(Integer id, Pageable pageable) {
+        return dtoMapper.mapUsersToDto(postRepository.findUsersWhoLikedPost(id, pageable));
+    }
+
+    @Transactional
+    public String likePost(Integer id) {
+        User user = authenticationManager.getAuthenticatedUser();
+        if(postRepository.isPostLikedByUser(id, user.getId()) == 0) {
+            postRepository.likePost(id, user.getId());
+            return "Successfully liked post: "+id;
+        }
+        else {
+            postRepository.unlikePost(id, user.getId());
+            return "Successfully unliked post: "+id;
+        }
+    }
+
     public void deletePost(Integer id) {
         Post post = findPostById(id);
-        requirePermissionToPost(post);
+        requirePermissionToPost(post.getUser().getId());
 
         postRepository.deleteById(id);
     }
@@ -88,10 +98,10 @@ public class PostService {
                 .orElseThrow(() -> new EntityNotFoundException("Post not found"));
     }
 
-    private void requirePermissionToPost(Post post) {
+    private void requirePermissionToPost(Integer authorId) {
         User user = authenticationManager.getAuthenticatedUser();
 
-        if(user == null || !(user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(post.getUser().getId()))) {
+        if(user == null || !(user.getRole() == UserRole.ROLE_ADMIN || user.getId().equals(authorId))) {
             throw new ForbiddenException("You don't have permission to this post");
         }
     }
