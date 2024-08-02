@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +24,14 @@ public class Comment {
     @Lob
     private String text;
 
+    @Column(nullable = false)
+    private Date date;
+
+    //Relations
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+
     @ManyToOne
     @JoinColumn(name = "post_id")
     private Post post;
@@ -34,25 +41,14 @@ public class Comment {
     private Comment parent;
 
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
-    private List<Comment> replies = new ArrayList<>();
+    private List<Comment> replies;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
+    private List<CommentLike> likes;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "comment_likes",
-            joinColumns = @JoinColumn(name = "comment_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<User> likes;
-
-    @Column(nullable = false)
-    private Date date;
-
+    //Persistence
     @PrePersist
-    protected void onCreate() {
+    private void onCreate() {
         this.date = new Date();
     }
 }

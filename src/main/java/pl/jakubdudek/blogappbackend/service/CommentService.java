@@ -12,20 +12,22 @@ import pl.jakubdudek.blogappbackend.model.dto.response.CommentDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.ICommentDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
 import pl.jakubdudek.blogappbackend.model.entity.Comment;
+import pl.jakubdudek.blogappbackend.model.entity.CommentLike;
 import pl.jakubdudek.blogappbackend.model.entity.Post;
 import pl.jakubdudek.blogappbackend.model.entity.User;
 import pl.jakubdudek.blogappbackend.model.enums.UserRole;
+import pl.jakubdudek.blogappbackend.repository.CommentLikeRepository;
 import pl.jakubdudek.blogappbackend.repository.CommentRepository;
 import pl.jakubdudek.blogappbackend.util.jwt.JwtAuthenticationManager;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
     private final DtoMapper dtoMapper;
     private final JwtAuthenticationManager authenticationManager;
 
@@ -53,15 +55,17 @@ public class CommentService {
     }
 
     public Page<ICommentDto> getPostComments(Integer id, Pageable pageable) {
-        return commentRepository.findComments(id, null, true, authenticationManager.getAuthenticatedUserId(), pageable);
+        Integer authUserId = authenticationManager.getAuthenticatedUserId();
+        return commentRepository.findComments(id, null, true, authUserId, pageable);
     }
 
     public Page<ICommentDto> getCommentReplies(Integer id, Pageable pageable) {
-        return commentRepository.findComments(null, id, false, authenticationManager.getAuthenticatedUserId(), pageable);
+        Integer authUserId = authenticationManager.getAuthenticatedUserId();
+        return commentRepository.findComments(null, id, false, authUserId, pageable);
     }
 
     public Page<UserDto> getLikes(Integer id, Pageable pageable) {
-        return dtoMapper.mapUsersToDto(commentRepository.findUsersWhoLikedComment(id, pageable));
+        return dtoMapper.mapUsersToDto(commentLikeRepository.findUsersWhoLikedComment(id, pageable));
     }
 
     public CommentDto updateComment(Integer id, CommentRequest request) {
@@ -76,13 +80,16 @@ public class CommentService {
     @Transactional
     public String likeComment(Integer id) {
         User user = authenticationManager.getAuthenticatedUser();
-        if(commentRepository.isCommentLikedByUser(id, user.getId()) == 0) {
-            commentRepository.likeComment(id, user.getId());
-            return "Successfully liked comment: "+id;
+        Optional<CommentLike> existingLike = commentLikeRepository.findByUserIdAndCommentId(user.getId(), id);
+
+        if(existingLike.isPresent()) {
+            commentLikeRepository.delete(existingLike.get());
+            return "Successfully unliked comment: "+id;
         }
         else {
-            commentRepository.unlikeComment(id, user.getId());
-            return "Successfully unliked comment: "+id;
+            Comment comment = Comment.builder().id(id).build();
+            commentLikeRepository.save(new CommentLike(user, comment));
+            return "Successfully liked comment: "+id;
         }
     }
 

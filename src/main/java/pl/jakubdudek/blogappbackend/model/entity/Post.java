@@ -32,26 +32,23 @@ public class Post {
     @Enumerated(EnumType.STRING)
     private PostStatus status;
 
+    @Column(nullable = false)
+    private Date date;
+
+    //Relations
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "post_likes",
-            joinColumns = @JoinColumn(name = "post_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<User> likes;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<PostLike> likes;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<Comment> comments;
 
-    @Column(nullable = false)
-    private Date date;
-
+    //Persistence
     @PrePersist
-    protected void onCreate() {
+    private void onCreate() {
         this.date = new Date();
     }
 }

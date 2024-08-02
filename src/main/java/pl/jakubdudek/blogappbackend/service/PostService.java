@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import pl.jakubdudek.blogappbackend.exception.ForbiddenException;
 import pl.jakubdudek.blogappbackend.model.dto.response.IPostDto;
 import pl.jakubdudek.blogappbackend.model.dto.response.UserDto;
+import pl.jakubdudek.blogappbackend.model.entity.PostLike;
+import pl.jakubdudek.blogappbackend.repository.PostLikeRepository;
 import pl.jakubdudek.blogappbackend.util.mapper.DtoMapper;
 import pl.jakubdudek.blogappbackend.model.dto.request.PostRequest;
 import pl.jakubdudek.blogappbackend.model.dto.response.PostDto;
@@ -26,6 +28,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final PostLikeRepository postLikeRepository;
     private final JwtAuthenticationManager authenticationManager;
     private final DtoMapper dtoMapper;
 
@@ -70,19 +73,22 @@ public class PostService {
     }
 
     public Page<UserDto> getLikes(Integer id, Pageable pageable) {
-        return dtoMapper.mapUsersToDto(postRepository.findUsersWhoLikedPost(id, pageable));
+        return dtoMapper.mapUsersToDto(postLikeRepository.findUsersWhoLikedPost(id, pageable));
     }
 
     @Transactional
     public String likePost(Integer id) {
         User user = authenticationManager.getAuthenticatedUser();
-        if(postRepository.isPostLikedByUser(id, user.getId()) == 0) {
-            postRepository.likePost(id, user.getId());
-            return "Successfully liked post: "+id;
+        Optional<PostLike> existingLike = postLikeRepository.findByUserIdAndPostId(user.getId(), id);
+
+        if(existingLike.isPresent()) {
+            postLikeRepository.delete(existingLike.get());
+            return "Successfully unliked post: "+id;
         }
         else {
-            postRepository.unlikePost(id, user.getId());
-            return "Successfully unliked post: "+id;
+            Post post = Post.builder().id(id).build();
+            postLikeRepository.save(new PostLike(user, post));
+            return "Successfully liked post: "+id;
         }
     }
 
